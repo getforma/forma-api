@@ -1,0 +1,7 @@
+boto3
+pandas
+scipy
+scikit-learn
+flask
+numpy
+gunicorn
