@@ -27,7 +27,7 @@ jobs:
     - name: Install dependencies
       run: |
         cd /home/ec2-user/forma-api
-        source venv/bin/activate
+        source .venv/bin/activate
         pip install -r requirements.txt
 
     # Step 4: Restart Gunicorn and Nginx services
