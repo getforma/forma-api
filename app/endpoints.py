@@ -2,7 +2,7 @@
 from flask import request, jsonify
 from app.auth import auth_required
 from app.config import Config
-
+from uuid import uuid4
 #dynamodb = boto3.resource('dynamodb')
 #table = dynamodb.Table(Config.DYNAMODB_TABLE)
 
@@ -14,7 +14,8 @@ def register_endpoints(app):
     @app.route('/sessions', methods=['POST'])
     @auth_required
     def create_new_session():
-        return jsonify({"message": "Running session started"}), 201
+        session_id = str(uuid4())
+        return jsonify({"message": f"Running session [{session_id}] started"}), 201
 
     @app.route('/sessions/:id/track', methods=['POST'])
     @auth_required
