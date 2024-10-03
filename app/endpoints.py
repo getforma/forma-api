@@ -15,7 +15,7 @@ def register_endpoints(app):
     @auth_required
     def create_new_session():
         session_id = str(uuid4())
-        return jsonify({"message": f"Running session [{session_id}] started"}), 201
+        return jsonify({"message": f"Running session [{session_id}] started, baby"}), 201
 
     @app.route('/sessions/:id/track', methods=['POST'])
     @auth_required
