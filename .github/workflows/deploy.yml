@@ -19,7 +19,7 @@ jobs:
       run: |
         git config --global --add safe.directory /home/ec2-user/forma-api
         cd /home/ec2-user/forma-api
-        git pull https://github.com/getforma/forma-api.git
+        git pull https://$GITHUB_TOKEN@github.com/getforma/forma-api.git
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
     
