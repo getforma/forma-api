@@ -20,6 +20,10 @@ jobs:
         git config --global --add safe.directory /home/ec2-user/forma-api
         cd /home/ec2-user/forma-api
         git pull origin main
+      env:
+        GIT_ASKPASS: /bin/echo
+        GIT_TERMINAL_PROMPT: 0
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
     
     # Step 3: Install dependencies (optional if you add or update dependencies)
     - name: Install dependencies
