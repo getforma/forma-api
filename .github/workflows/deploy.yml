@@ -17,6 +17,7 @@ jobs:
     # Step 2: Pull the latest code into your EC2 instance
     - name: Pull latest code
       run: |
+        git config --global --add safe.directory /home/ec2-user/forma-api
         cd /home/ec2-user/forma-api
         git pull origin main
     
