@@ -9,13 +9,13 @@ from uuid import uuid4
 def register_endpoints(app):
     @app.route('/', methods=['GET'])
     def index():
-        return "hey, dog 6"
+        return "Forma API v0.1.0"
 
     @app.route('/sessions', methods=['POST'])
     @auth_required
     def create_new_session():
         session_id = str(uuid4())
-        return jsonify({"message": f"Running session [{session_id}] started, baby"}), 201
+        return jsonify({"message": f"Running session [{session_id}] started."}), 201
 
     @app.route('/sessions/:id/track', methods=['POST'])
     @auth_required
