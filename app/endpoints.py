@@ -9,7 +9,7 @@ from uuid import uuid4
 def register_endpoints(app):
     @app.route('/', methods=['GET'])
     def index():
-        return "hey, dog 3"
+        return "hey, dog 4"
 
     @app.route('/sessions', methods=['POST'])
     @auth_required
