@@ -9,6 +9,9 @@ class RunningSession(BaseEntity):
         self.user_name = user_name
         self.save()
 
+    def to_txt(self):
+        return f"{self.id},{self.user_name},{self.device_id},{self.device_position},{self.created_at}\n"
+
     def to_dict(self):
         return {
             'id': self.id,

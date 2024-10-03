@@ -12,7 +12,7 @@ class BaseEntity:
     
     def save(self):
         with open(self.table, 'a') as f:
-            f.write(self.to_dict())
+            f.write(self.to_txt())
         # self.table.put_item(
         #     Item=self.to_dict()
         # )
