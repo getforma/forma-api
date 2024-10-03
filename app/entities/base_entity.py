@@ -1,7 +1,7 @@
 import boto3
 from uuid import uuid4
 from datetime  import datetime, timezone
-dynamodb = boto3.resource('dynamodb')
+dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
 
 class BaseEntity:
     def __init__(self, table):
