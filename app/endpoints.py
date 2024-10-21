@@ -2,6 +2,8 @@ from flask import request, jsonify
 from app.auth import auth_required
 from app.entities.running_session import RunningSession
 from app.entities.running_session_data import RunningSessionData
+from app.utils.running_metrics import *
+
 def register_endpoints(app):
     @app.route('/', methods=['GET'])
     def index():
@@ -34,4 +36,24 @@ def register_endpoints(app):
                 angle=point['angle']
             )
 
-        return jsonify({"ok": True}), 201
+        ##############################################
+        # TODO :Calculate metrics
+        ##############################################
+        distance = calculate_distance(data)
+        speed = calculate_speed(data)
+        cadence = calculate_cadence(data)
+        vertical_oscillation = calculate_vertical_oscillation(data)
+        stride_length = calculate_stride_length(data)
+        ground_contact_time = calculate_ground_contact_time(data)
+        pace = calculate_pace(data)
+        return jsonify({
+            "start_time": data[0]['time'],
+            "end_time": data[-1]['time'],
+            "distance": distance,
+            "speed": speed,
+            "cadence": cadence,
+            "vertical_oscillation": vertical_oscillation,
+            "stride_length": stride_length,
+            "ground_contact_time": ground_contact_time,
+            "pace": pace
+        }), 201
