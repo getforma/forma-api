@@ -6,4 +6,3 @@ flask
 numpy
 gunicorn
 pytest
-math
