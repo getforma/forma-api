@@ -28,7 +28,15 @@ def adjust_data_orientation(data, axis):
         data['AccZ(g)'] = data['AccY(g)']
     return data
 
+def final_clean_data(data):
+    axis = detect_up_down_axis(data)
+    new_data = adjust_data_orientation(data, axis)
+    clean_data = filter_non_running_data(new_data)
+    return clean_data
+
+
 def apply_fft_with_filter(time, data, threshold=0.1):
+    
     time_in_seconds = (time - time.iloc[0]).dt.total_seconds()
     timestep = np.mean(np.diff(time_in_seconds))
 
@@ -42,8 +50,8 @@ def reconstruct_signal_from_fft(fft_filtered):
     return ifft(fft_filtered).real
 
 def calculate_cadence(data) -> float:
+    acceleration_data = final_clean_data(data)
     time = data['time']
-    acceleration_data = data['AccZ(g)']
     freq, fft_filtered = apply_fft_with_filter(time, acceleration_data, threshold=0.1)
     reconstructed_signal = reconstruct_signal_from_fft(fft_filtered)
 
@@ -71,8 +79,9 @@ def calculate_speed(data) -> float:
     return 0.0
 
 def calculate_vertical_oscillation(data) -> float:
-    acc_z = data['AccZ(g)'].to_numpy() * 9.81
-    time = (data['time'] - data['time'].iloc[0]).dt.total_seconds().to_numpy()
+    clean_data = final_clean_data(data)
+    acc_z = clean_data['AccZ(g)'].to_numpy() * 9.81
+    time = (clean_data['time'] - clean_data['time'].iloc[0]).dt.total_seconds().to_numpy()
 
     # High-pass filter to remove gravity component (cut-off frequency can be adjusted)
     sampling_rate = 1 / np.mean(np.diff(time))
@@ -98,18 +107,20 @@ def calculate_vertical_oscillation(data) -> float:
         return None
 
 def calculate_stride_length(data) -> float:
-    zero_crossings = np.where(np.diff(np.signbit(data['AccZ(g)'].to_numpy())))[0]
+    clean_data = final_clean_data(data)
+    zero_crossings = np.where(np.diff(np.signbit(clean_data['AccZ(g)'].to_numpy())))[0]
     airborne_times = []
     for z1, z2 in zip(zero_crossings[:-1], zero_crossings[1:]):
-        t1 = data['time'].iloc[z1]
-        t2 = data['time'].iloc[z2]
+        t1 = clean_data['time'].iloc[z1]
+        t2 = clean_data['time'].iloc[z2]
         airborne_times.append((t2 - t1).total_seconds())
     stride_lengths = [speed * t for t in airborne_times]
     return np.mean(stride_lengths) if stride_lengths else None
 
 def calculate_ground_contact_time(data, time_column='time', acc_column='AccZ(g)', fft_threshold=0.1) -> float:
-    time = data[time_column]
-    acceleration_data = data[acc_column]
+    clean_data = final_clean_data(data)
+    time = clean_data[time_column]
+    acceleration_data = clean_data[acc_column]
 
     freq, fft_filtered = apply_fft_with_filter(time, acceleration_data, threshold=fft_threshold)
     reconstructed_signal = reconstruct_signal_from_fft(fft_filtered)
