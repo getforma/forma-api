@@ -2,9 +2,7 @@ import numpy as np
 import pandas as pd
 from scipy.signal import find_peaks, butter, filtfilt
 from scipy.fft import fft, ifft
-
-# Speed value to be updated when GPS data is integrated
-speed = 3.4  # Placeholder value
+from math import radians, cos, sin, asin, sqrt
 
 def detect_up_down_axis(data):
     """
@@ -59,6 +57,77 @@ def reconstruct_signal_from_fft(fft_filtered):
     """
     return ifft(fft_filtered).real
 
+def haversine(lon1, lat1, lon2, lat2):
+    """
+    Calculates the great-circle distance between two points on the Earth surface.
+    Input coordinates are in decimal degrees.
+    Returns distance in meters.
+    """
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+
+    R = 6371000  
+
+    dlon = lon2 - lon1 
+    dlat = lat2 - lat1 
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a)) 
+    distance = R * c
+    return distance
+
+def calculate_distance(data) -> float:
+    """
+    Calculates the total distance covered using latitude and longitude data.
+    Returns the distance in meters.
+    """
+    if 'latitude' not in data.columns or 'longitude' not in data.columns:
+        return 0.0
+
+    data = data.dropna(subset=['latitude', 'longitude'])
+
+    data = data.reset_index(drop=True)
+
+    distances = []
+    for i in range(1, len(data)):
+        lat1, lon1 = data.loc[i - 1, ['latitude', 'longitude']]
+        lat2, lon2 = data.loc[i, ['latitude', 'longitude']]
+        distance = haversine(lon1, lat1, lon2, lat2)
+        distances.append(distance)
+
+    total_distance = sum(distances)
+    return total_distance
+
+def calculate_speed(data) -> float:
+    """
+    Calculates the average speed over the data interval.
+    Returns the speed in meters per second.
+    """
+    total_distance = calculate_distance(data)
+
+    if 'time' not in data.columns or len(data) < 2:
+        return 0.0
+
+    time = pd.to_datetime(data['time'])
+    total_time = (time.iloc[-1] - time.iloc[0]).total_seconds()
+
+    if total_time > 0:
+        average_speed = total_distance / total_time 
+        return average_speed
+    else:
+        return 0.0
+
+def calculate_pace(data) -> float:
+    """
+    Calculates the average pace over the data interval.
+    Returns the pace in minutes per kilometer.
+    """
+    average_speed = calculate_speed(data) 
+
+    if average_speed > 0:
+        pace = (1000 / average_speed) / 60  
+        return pace
+    else:
+        return 0.0
+
 def calculate_cadence(data) -> float:
     """
     Calculates the average cadence in steps per minute.
@@ -79,8 +148,8 @@ def calculate_cadence(data) -> float:
     sampling_rate = 1 / sampling_interval
 
     # Estimate expected step frequency
-    expected_cadence = 180  
-    expected_step_frequency = expected_cadence / 60  
+    expected_cadence = 180  # Adjust based on context if necessary
+    expected_step_frequency = expected_cadence / 60  # Convert to Hz
     expected_samples_between_steps = sampling_rate / expected_step_frequency
 
     # Find peaks in the reconstructed signal
@@ -91,23 +160,11 @@ def calculate_cadence(data) -> float:
 
     # Calculate cadence
     total_steps = len(peaks)
-    cadence = total_steps / total_time  # Steps per minute
-
-    return cadence
-
-def calculate_distance(data) -> float:
-    """
-    Placeholder function for calculating distance.
-    To be implemented when GPS data is available.
-    """
-    return 0.0
-
-def calculate_speed(data) -> float:
-    """
-    Placeholder function for calculating speed.
-    To be implemented when GPS data is available.
-    """
-    return 0.0
+    if total_time > 0:
+        cadence = total_steps / total_time  
+        return cadence
+    else:
+        return 0.0
 
 def calculate_vertical_oscillation(data) -> float:
     """
@@ -144,32 +201,33 @@ def calculate_vertical_oscillation(data) -> float:
     else:
         return None
 
-def calculate_stride_length(data, speed) -> float:
+def calculate_stride_length(data) -> float:
     """
     Calculates the average stride length.
     Uses zero crossings of the acceleration data along the detected vertical axis.
     """
-    # Get the cleaned data and detected axis
+    # First, calculate speed using GPS data
+    average_speed = calculate_speed(data) 
+
+    if average_speed <= 0:
+        return 0.0
+
     clean_data, axis = final_clean_data(data)
     acc_column = f'Acc{axis}(g)'
     acceleration_data = clean_data[acc_column].to_numpy()
     time = clean_data['time']
 
-    # Find zero crossings in the acceleration data
     zero_crossings = np.where(np.diff(np.signbit(acceleration_data)))[0]
 
-    # Calculate airborne times between zero crossings
     airborne_times = []
     for z1, z2 in zip(zero_crossings[:-1], zero_crossings[1:]):
         t1 = time.iloc[z1]
         t2 = time.iloc[z2]
         airborne_times.append((t2 - t1).total_seconds())
 
-    # Calculate stride lengths
-    stride_lengths = [speed * t for t in airborne_times]
+    stride_lengths = [average_speed * t for t in airborne_times]
 
-    # Return the average stride length
-    return np.mean(stride_lengths) if stride_lengths else None
+    return np.mean(stride_lengths) if stride_lengths else 0.0
 
 def calculate_ground_contact_time(data, time_column='time', fft_threshold=0.1) -> float:
     """
@@ -200,11 +258,3 @@ def calculate_ground_contact_time(data, time_column='time', fft_threshold=0.1) -
             gct = (time.iloc[peak] - time.iloc[v]).total_seconds() * 1000
             gct_values.append(gct)
     return np.mean(gct_values) if gct_values else None
-
-def calculate_pace(data) -> float:
-    """
-    Placeholder function for calculating pace.
-    To be implemented when GPS data is available.
-    """
-    return 0.0
-
