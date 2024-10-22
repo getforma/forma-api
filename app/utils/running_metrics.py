@@ -19,20 +19,11 @@ def filter_non_running_data(data, threshold=1.0):
     )
     return data[data['acceleration_magnitude'] > threshold]
 
-def adjust_data_orientation(data, axis):
-    if axis == 'X':
-        data = data.copy() 
-        data['AccZ(g)'] = data['AccX(g)']
-    elif axis == 'Y':
-        data = data.copy()
-        data['AccZ(g)'] = data['AccY(g)']
-    return data
 
 def final_clean_data(data):
     axis = detect_up_down_axis(data)
-    new_data = adjust_data_orientation(data, axis)
-    clean_data = filter_non_running_data(new_data)
-    return clean_data
+    clean_data = filter_non_running_data(data)
+    return clean_data, axis
 
 
 def apply_fft_with_filter(time, data, threshold=0.1):
@@ -50,8 +41,11 @@ def reconstruct_signal_from_fft(fft_filtered):
     return ifft(fft_filtered).real
 
 def calculate_cadence(data) -> float:
-    acceleration_data = final_clean_data(data)
-    time = data['time']
+    clean_data, axis = final_clean_data(data)
+    acc_column = f'Acc{axis}(g)'
+    time = clean_data['time']
+    acceleration_data = clean_data[acc_column]
+
     freq, fft_filtered = apply_fft_with_filter(time, acceleration_data, threshold=0.1)
     reconstructed_signal = reconstruct_signal_from_fft(fft_filtered)
 
@@ -59,18 +53,19 @@ def calculate_cadence(data) -> float:
     sampling_rate = 1 / sampling_interval
 
     expected_cadence = 180  
-    expected_step_frequency = expected_cadence / 60  
+    expected_step_frequency = expected_cadence / 60
     expected_samples_between_steps = sampling_rate / expected_step_frequency
 
     peaks, _ = find_peaks(reconstructed_signal, distance=expected_samples_between_steps * 0.5)
 
+
     total_time = (time.iloc[-1] - time.iloc[0]).total_seconds() / 60.0
 
     total_steps = len(peaks)
-
     cadence = total_steps / total_time  # Steps per minute
 
     return cadence
+
 
 def calculate_distance(data) -> float:
     return 0.0
@@ -79,8 +74,9 @@ def calculate_speed(data) -> float:
     return 0.0
 
 def calculate_vertical_oscillation(data) -> float:
-    clean_data = final_clean_data(data)
-    acc_z = clean_data['AccZ(g)'].to_numpy() * 9.81
+    clean_data, axis = final_clean_data(data)
+    acc_column = f'Acc{axis}(g)'
+    acc_z = clean_data[acc_column].to_numpy() * 9.81
     time = (clean_data['time'] - clean_data['time'].iloc[0]).dt.total_seconds().to_numpy()
 
     # High-pass filter to remove gravity component (cut-off frequency can be adjusted)
@@ -89,7 +85,6 @@ def calculate_vertical_oscillation(data) -> float:
     b, a = butter(2, cutoff_frequency / (0.5 * sampling_rate), btype='highpass')
     acc_z_filtered = filtfilt(b, a, acc_z)
 
-    # Find dominant frequency using FFT
     freq_domain = np.fft.rfftfreq(len(acc_z_filtered), d=1/sampling_rate)
     fft_magnitude = np.abs(np.fft.rfft(acc_z_filtered))
     dominant_freq_index = np.argmax(fft_magnitude)
@@ -106,19 +101,28 @@ def calculate_vertical_oscillation(data) -> float:
     else:
         return None
 
-def calculate_stride_length(data) -> float:
-    clean_data = final_clean_data(data)
-    zero_crossings = np.where(np.diff(np.signbit(clean_data['AccZ(g)'].to_numpy())))[0]
+def calculate_stride_length(data, speed) -> float:
+    clean_data, axis = final_clean_data(data)
+    acc_column = f'Acc{axis}(g)'
+    acceleration_data = clean_data[acc_column].to_numpy()
+    time = clean_data['time']
+
+    zero_crossings = np.where(np.diff(np.signbit(acceleration_data)))[0]
+
     airborne_times = []
     for z1, z2 in zip(zero_crossings[:-1], zero_crossings[1:]):
-        t1 = clean_data['time'].iloc[z1]
-        t2 = clean_data['time'].iloc[z2]
+        t1 = time.iloc[z1]
+        t2 = time.iloc[z2]
         airborne_times.append((t2 - t1).total_seconds())
+
     stride_lengths = [speed * t for t in airborne_times]
+
     return np.mean(stride_lengths) if stride_lengths else None
 
-def calculate_ground_contact_time(data, time_column='time', acc_column='AccZ(g)', fft_threshold=0.1) -> float:
-    clean_data = final_clean_data(data)
+
+def calculate_ground_contact_time(data, time_column='time', fft_threshold=0.1) -> float:
+    clean_data, axis = final_clean_data(data)
+    acc_column = f'Acc{axis}(g)'
     time = clean_data[time_column]
     acceleration_data = clean_data[acc_column]
 
@@ -135,6 +139,7 @@ def calculate_ground_contact_time(data, time_column='time', acc_column='AccZ(g)'
             peak = subsequent_peaks[0]
             gct = (time.iloc[peak] - time.iloc[v]).total_seconds() * 1000
             gct_values.append(gct)
+    return np.mean(gct_values) if gct_values else None
 
 def calculate_pace(data) -> float:
     return 0.0
