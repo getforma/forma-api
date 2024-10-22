@@ -36,7 +36,7 @@ class TestRunningMetrics(unittest.TestCase):
             'acceleration_x': np.random.rand(100),
             'acceleration_y': np.random.rand(100),
             'acceleration_z': np.random.rand(100),
-            # Add remaining columns here
+            # Add remaining columns here if we end up using more
         })
 
     def test_calculate_cadence(self):
