@@ -29,32 +29,32 @@ class TestRunningMetrics(unittest.TestCase):
     def test_calculate_distance(self):
         result = calculate_distance(self.sample_data)
         self.assertIsInstance(result, float)
-        self.assertAlmostEqual(result, 76.172)  # Update this when the function is implemented
+        self.assertAlmostEqual(result, 4848.356246070045)  
 
     def test_calculate_speed(self):
         result = calculate_speed(self.sample_data)
         self.assertIsInstance(result, float)
-        self.assertEqual(result, 0.0)  # Update this when the function is implemented
+        self.assertEqual(result, 3.265724233672104)  
 
     def test_calculate_vertical_oscillation(self):
         result = calculate_vertical_oscillation(self.sample_data)
         self.assertIsInstance(result, float)
-        self.assertAlmostEqual(result, 0.14)  # Update this when the function is implemented
+        self.assertAlmostEqual(result, 0.20803382412734073)  
 
     def test_calculate_stride_length(self):
         result = calculate_stride_length(self.sample_data)
         self.assertIsInstance(result, float)
-        self.assertAlmostEqual(result, 0.68)  # Update this when the function is implemented
+        self.assertAlmostEqual(result, 1.4861219026772634)  
 
     def test_calculate_ground_contact_time(self):
         result = calculate_ground_contact_time(self.sample_data)
         self.assertIsInstance(result, float)
-        self.assertAlmostEqual(result, 182.24)  # Update this when the function is implemented
+        self.assertAlmostEqual(result, 293.29238133226966)  
 
     def test_calculate_pace(self):
         result = calculate_pace(self.sample_data)
         self.assertIsInstance(result, float)
-        self.assertEqual(result, 0.0)  
+        self.assertEqual(result, 5.103513179349512)  
 
 if __name__ == '__main__':
     unittest.main()

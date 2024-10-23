@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from scipy.signal import find_peaks, butter, filtfilt
+from scipy.signal import find_peaks, butter, filtfilt, savgol_filter
 from scipy.fft import fft, ifft
 from math import radians, cos, sin, asin, sqrt
 
@@ -32,7 +32,7 @@ def final_clean_data(data):
     Returns the cleaned data and the detected axis.
     """
     axis = detect_up_down_axis(data)
-    data['time'] = pd.to_datetime(data['time'], format='%Y-%m-%d %H:%M:%S:%f')
+    data['time'] = pd.to_datetime(data['time'], format="%Y-%m-%dT%H:%M:%S.%f")
     clean_data = filter_non_running_data(data)
     return clean_data, axis
 
@@ -139,26 +139,23 @@ def calculate_cadence(data) -> float:
     acc_column = f'{axis}_acceleration'
     time = clean_data['time']
     acceleration_data = clean_data[acc_column]
-
+    
     # Apply FFT and filter the signal
     freq, fft_filtered = apply_fft_with_filter(time, acceleration_data, threshold=0.1)
     reconstructed_signal = reconstruct_signal_from_fft(fft_filtered)
-
-    # Calculate sampling rate
-    sampling_interval = np.mean(time.diff().dt.total_seconds())
-    sampling_rate = 1 / sampling_interval
-
-    # Estimate expected step frequency
-    expected_cadence = 180  # Adjust based on context if necessary
-    expected_step_frequency = expected_cadence / 60  # Convert to Hz
-    expected_samples_between_steps = sampling_rate / expected_step_frequency
-
-    # Find peaks in the reconstructed signal
-    peaks, _ = find_peaks(reconstructed_signal, distance=expected_samples_between_steps * 0.5)
-
+    
+    reconstructed_signal = savgol_filter(reconstructed_signal, window_length=11, polyorder=2)
+    
+    # Find peaks in the reconstructed signal without specifying 'distance'
+    peaks, _ = find_peaks(reconstructed_signal)
+    
+    # Optional: Use 'prominence' or 'height' to filter peaks
+    # prominence_value = np.std(reconstructed_signal) * 0.5
+    # peaks, _ = find_peaks(reconstructed_signal, prominence=prominence_value)
+    
     # Calculate total time in minutes
     total_time = (time.iloc[-1] - time.iloc[0]).total_seconds() / 60.0
-
+    
     # Calculate cadence
     total_steps = len(peaks)
     if total_time > 0:
@@ -166,6 +163,8 @@ def calculate_cadence(data) -> float:
         return cadence
     else:
         return 0.0
+
+
 
 def calculate_vertical_oscillation(data) -> float:
     """
