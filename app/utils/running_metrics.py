@@ -10,9 +10,9 @@ def detect_up_down_axis(data):
     Returns the axis as a string: 'X', 'Y', or 'Z'.
     """
     stds = {
-        'X': np.std(data['AccX(g)']),
-        'Y': np.std(data['AccY(g)']),
-        'Z': np.std(data['AccZ(g)'])
+        'X': np.std(data['x_acceleration']),
+        'Y': np.std(data['y_acceleration']),
+        'Z': np.std(data['z_acceleration'])
     }
     return max(stds, key=stds.get)
 
@@ -22,7 +22,7 @@ def filter_non_running_data(data, threshold=1.0):
     This helps in isolating periods of running from the dataset.
     """
     data['acceleration_magnitude'] = np.sqrt(
-        data['AccX(g)']**2 + data['AccY(g)']**2 + data['AccZ(g)']**2
+        data['x_acceleration']**2 + data['y_acceleration']**2 + data['z_acceleration']**2
     )
     return data[data['acceleration_magnitude'] > threshold]
 
@@ -135,7 +135,7 @@ def calculate_cadence(data) -> float:
     """
     # Get the cleaned data and detected axis
     clean_data, axis = final_clean_data(data)
-    acc_column = f'Acc{axis}(g)'
+    acc_column = f'{axis}_acceleration'
     time = clean_data['time']
     acceleration_data = clean_data[acc_column]
 
@@ -173,7 +173,7 @@ def calculate_vertical_oscillation(data) -> float:
     """
     # Get the cleaned data and detected axis
     clean_data, axis = final_clean_data(data)
-    acc_column = f'Acc{axis}(g)'
+    acc_column = f'{axis}_acceleration'
     acc_z = clean_data[acc_column].to_numpy() * 9.81  # Convert to m/s^2
     time = (clean_data['time'] - clean_data['time'].iloc[0]).dt.total_seconds().to_numpy()
 
@@ -213,7 +213,7 @@ def calculate_stride_length(data) -> float:
         return 0.0
 
     clean_data, axis = final_clean_data(data)
-    acc_column = f'Acc{axis}(g)'
+    acc_column = f'{axis}_acceleration'
     acceleration_data = clean_data[acc_column].to_numpy()
     time = clean_data['time']
 
@@ -236,7 +236,7 @@ def calculate_ground_contact_time(data, time_column='time', fft_threshold=0.1) -
     """
     # Get the cleaned data and detected axis
     clean_data, axis = final_clean_data(data)
-    acc_column = f'Acc{axis}(g)'
+    acc_column = f'{axis}_acceleration'
     time = clean_data[time_column]
     acceleration_data = clean_data[acc_column]
 
