@@ -10,9 +10,9 @@ def detect_up_down_axis(data):
     Returns the axis as a string: 'X', 'Y', or 'Z'.
     """
     stds = {
-        'X': np.std(data['x_acceleration']),
-        'Y': np.std(data['y_acceleration']),
-        'Z': np.std(data['z_acceleration'])
+        'x': np.std(data['x_acceleration']),
+        'y': np.std(data['y_acceleration']),
+        'z': np.std(data['z_acceleration'])
     }
     return max(stds, key=stds.get)
 
@@ -32,6 +32,7 @@ def final_clean_data(data):
     Returns the cleaned data and the detected axis.
     """
     axis = detect_up_down_axis(data)
+    data['time'] = pd.to_datetime(data['time'], format='%Y-%m-%d %H:%M:%S:%f')
     clean_data = filter_non_running_data(data)
     return clean_data, axis
 
