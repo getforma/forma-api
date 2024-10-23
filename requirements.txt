@@ -6,3 +6,5 @@ flask
 numpy
 gunicorn
 pytest
+factory
+secrets
