@@ -16,7 +16,7 @@ def detect_up_down_axis(data):
     }
     return max(stds, key=stds.get)
 
-def filter_non_running_data(data, threshold=1.0):
+def filter_non_running_data(data, threshold=0.2):
     """
     Filters out data where the acceleration magnitude is below a certain threshold.
     This helps in isolating periods of running from the dataset.
@@ -31,6 +31,7 @@ def final_clean_data(data):
     Cleans the data by detecting the vertical axis and filtering out non-running data.
     Returns the cleaned data and the detected axis.
     """
+    data = data.copy()
     axis = detect_up_down_axis(data)
     data['time'] = pd.to_datetime(data['time'], format="%Y-%m-%dT%H:%M:%S.%f")
     clean_data = filter_non_running_data(data)
