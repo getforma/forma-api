@@ -146,12 +146,8 @@ def calculate_cadence(data) -> float:
     
     reconstructed_signal = savgol_filter(reconstructed_signal, window_length=11, polyorder=2)
     
-    # Find peaks in the reconstructed signal without specifying 'distance'
-    peaks, _ = find_peaks(reconstructed_signal)
-    
-    # Optional: Use 'prominence' or 'height' to filter peaks
-    # prominence_value = np.std(reconstructed_signal) * 0.5
-    # peaks, _ = find_peaks(reconstructed_signal, prominence=prominence_value)
+    prominence_value = np.std(reconstructed_signal) * 0.5
+    peaks, _ = find_peaks(reconstructed_signal, prominence=prominence_value)
     
     # Calculate total time in minutes
     total_time = (time.iloc[-1] - time.iloc[0]).total_seconds() / 60.0
