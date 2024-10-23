@@ -51,6 +51,9 @@ The key metrics calculated are:
 - **Stride Length Calculation**: Estimates stride length based on airborne time and runner speed.
 - **Vertical Oscillation Calculation**: Calculates vertical oscillation using filtered acceleration data, accounting for gravitational forces, and using harmonic motion equations.
 - **Cadence Calculation**: Calculates the number of steps per minute by identifying peaks in the reconstructed signal and adjusting for the sampling rate.
+- **Distance Calculation: Uses Haversine (algorithm for finding distance on a spherical object), to calculate the distance run between each datapoint, and adds to the total distance run
+- **Speed calculation: Uses the distance ran divided by time to find the speed in m/s
+- **Pace calculation: Uses the speed to calculate the running pace, in min/km
 
 ## Math Behind the Calculations
 
@@ -90,6 +93,28 @@ Newton's laws of motion come into play in several calculations, particularly whe
 - **Displacement**: By integrating velocity, we estimate the displacement of the runner's body, which helps in calculating stride length and vertical oscillation.
 
 - **Why it’s useful**: Newton's laws form the foundation of these calculations. Understanding the relationship between acceleration, velocity, and displacement allows us to derive important running metrics from raw accelerometer data.
+
+### 4. **Haversine Formula**
+
+The **Haversine Formula** is used to calculate the great-circle distance between two points on the Earth's surface, given their latitude and longitude coordinates. This formula accounts for the curvature of the Earth, making it suitable for calculating the distance ran based on GPS coordinates.
+
+- **Equation**: The Haversine formula is:
+
+  $$\ a = \sin^2\left(\frac{\Delta \varphi}{2}\right) + \cos(\varphi_1) \cdot \cos(\varphi_2) \cdot \sin^2\left(\frac{\Delta \lambda}{2}\right) \$$
+  $$\ c = 2 \cdot \text{atan2}\left(\sqrt{a}, \sqrt{1 - a}\right)\$$
+  $$\ d = R \cdot c\$$
+
+  Where:
+  - $$\varphi_1, \varphi_2\$$ are the latitudes of the two points (in radians),
+  - $$\lambda_1, \lambda_2\$$ are the longitudes of the two points (in radians),
+  - $$\(R)\$$ is the radius of the Earth (approximately 6,371,000 meters),
+  - $$\(d)\$$ is the distance between the two points.
+
+- **Why it’s useful**: The Haversine formula allows us to calculate the total distance a runner has traveled by summing the distances between consecutive GPS coordinates. This is especially useful when tracking running sessions over varying routes and terrains, ensuring that the distance calculation remains accurate even over long distances.
+
+- **Application in the Script**: In the code, we use the `haversine` function to calculate the distance between two consecutive points based on latitude and longitude. By summing these distances over the entire dataset, we compute the total distance ran. This provides valuable insight into how far an athlete has run during a session.
+  
+  
 
 ## Installation
 
