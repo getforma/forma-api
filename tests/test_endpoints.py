@@ -14,6 +14,8 @@ from app.utils.running_metrics import (
     final_clean_data
 )
 
+from app.endpoints import *
+
 class test_endpoints(unittest.TestCase):
     def setUp(self):
         """
@@ -23,5 +25,9 @@ class test_endpoints(unittest.TestCase):
         self.sample_data['time'] = pd.to_datetime(self.sample_data['time'], format="%Y-%m-%dT%H:%M:%S.%f")
         self.sample_data, self.axis = final_clean_data(self.sample_data)
 
+    def test_endpoints(self):
+        result = register_endpoints(self.sample_data)
+        
+        return 0.0
     
         
