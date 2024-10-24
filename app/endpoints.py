@@ -18,12 +18,14 @@ def register_endpoints(app):
             device_position=data['device_position'],
             user_name=data['user_name']
         )
+        print(f"===============> Created running sesssion for {data['user_name']}. ID: {run.id}")
         return jsonify(run.to_dict()), 201
 
     @app.route('/sessions/<id>/track', methods=['POST'])
     @auth_required
     def track_session_data(id):
         data = request.json
+        print(f"===============> Tracking session data for {id}. Got {len(data)} points")
         for point in data:
             RunningSessionData(
                 running_session_id=id,
@@ -35,25 +37,37 @@ def register_endpoints(app):
                 magnetic_field=point['magnetic_field'],
                 angle=point['angle']
             )
+        print(f"===============> Created {len(data)} points for session {id}")
+        #create dataframe and clean data
+        df, axis = create_dataframe_and_detect_axis(data)
 
-        ##############################################
-        # TODO :Calculate metrics
-        ##############################################
-        distance = calculate_distance(data)
-        speed = calculate_speed(data)
-        cadence = calculate_cadence(data)
-        vertical_oscillation = calculate_vertical_oscillation(data)
-        stride_length = calculate_stride_length(data)
-        ground_contact_time = calculate_ground_contact_time(data)
-        pace = calculate_pace(data)
+        distance = calculate_distance(df)
+        speed = calculate_speed(df, distance)
+        pace = calculate_pace(df, speed)
+        cadence = calculate_cadence(df, axis)
+        vertical_oscillation = calculate_vertical_oscillation(df, axis)
+        stride_length = calculate_stride_length(df, axis, speed)
+        ground_contact_time = calculate_ground_contact_time(df, axis)
+        print(f"===============> Calculated metrics for session {id}")
+        print({
+            "start_time": data[0]['time'],
+            "end_time": data[-1]['time'],
+            "distance": distance,
+            "speed": speed,
+            "pace": pace,
+            "cadence": cadence,
+            "vertical_oscillation": vertical_oscillation,
+            "stride_length": stride_length,
+            "ground_contact_time": ground_contact_time,
+        })
         return jsonify({
             "start_time": data[0]['time'],
             "end_time": data[-1]['time'],
             "distance": distance,
             "speed": speed,
+            "pace": pace,
             "cadence": cadence,
             "vertical_oscillation": vertical_oscillation,
             "stride_length": stride_length,
             "ground_contact_time": ground_contact_time,
-            "pace": pace
         }), 201
