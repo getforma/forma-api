@@ -36,24 +36,24 @@ def register_endpoints(app):
                 angle=point['angle']
             )
 
-        ##############################################
-        # TODO :Calculate metrics
-        ##############################################
-        distance = calculate_distance(data)
-        speed = calculate_speed(data)
-        cadence = calculate_cadence(data)
-        vertical_oscillation = calculate_vertical_oscillation(data)
-        stride_length = calculate_stride_length(data)
-        ground_contact_time = calculate_ground_contact_time(data)
-        pace = calculate_pace(data)
+        #create dataframe and clean data
+        df, axis = create_dataframe_and_detect_axis(data)
+
+        distance = calculate_distance(df)
+        speed = calculate_speed(df, distance)
+        pace = calculate_pace(df, speed)
+        cadence = calculate_cadence(df, axis)
+        vertical_oscillation = calculate_vertical_oscillation(df, axis)
+        stride_length = calculate_stride_length(df, axis, speed)
+        ground_contact_time = calculate_ground_contact_time(df, axis)
         return jsonify({
             "start_time": data[0]['time'],
             "end_time": data[-1]['time'],
             "distance": distance,
             "speed": speed,
+            "pace": pace,
             "cadence": cadence,
             "vertical_oscillation": vertical_oscillation,
             "stride_length": stride_length,
             "ground_contact_time": ground_contact_time,
-            "pace": pace
         }), 201
