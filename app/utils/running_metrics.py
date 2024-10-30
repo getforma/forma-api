@@ -4,6 +4,32 @@ from scipy.signal import find_peaks, butter, filtfilt, savgol_filter
 from scipy.fft import fft, ifft
 from math import radians, cos, sin, asin, sqrt
 
+def calculate_session_metrics(final_df, axis):
+        """
+        Calculate all metrics for a running session and return them in a dictionary
+        """
+        distance = calculate_distance(final_df)
+        speed = calculate_speed(final_df, distance)
+        pace = calculate_pace(final_df, speed)
+        cadence = calculate_cadence(final_df, axis)
+        vertical_oscillation = calculate_vertical_oscillation(final_df, axis)
+        stride_length = calculate_stride_length(final_df, axis, speed)
+        ground_contact_time = calculate_ground_contact_time(final_df, axis)
+
+        metrics = {
+            "start_time": final_df.iloc[0]['time'],
+            "end_time": final_df.iloc[-1]['time'],
+            "distance": distance,
+            "speed": speed,
+            "pace": pace,
+            "cadence": cadence,
+            "vertical_oscillation": vertical_oscillation,
+            "stride_length": stride_length,
+            "ground_contact_time": ground_contact_time
+        }
+
+        return metrics
+
 def parse_json_to_dataframe(data):
     records = {
         'time': [entry['time'] for entry in data],
