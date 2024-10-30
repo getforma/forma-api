@@ -45,6 +45,8 @@ def register_endpoints(app):
                 angle=point['angle']
             )
 
+    
+
     @app.route('/sessions/<id>/track', methods=['POST'])
     @auth_required
     def track_session_data(id):
@@ -58,8 +60,7 @@ def register_endpoints(app):
         - Calculate the metrics for the entire run using the final concatenated dataframe
         - Return the metrics to the client
         '''
-
-        # measure time taken to track session data
+        # start timer to measure time taken to track the session
         start_time = time.time()
 
         # Parse the raw data received from the device into a dataframe
@@ -80,36 +81,45 @@ def register_endpoints(app):
             
         # Clean and detect the axis of the running session
         final_df, axis = clean_and_detect_axis(final_df)
-
         logging.info(f"Final dataframe has {len(final_df)} points")
 
         # Start background thread for data insertion
         insert_thread = threading.Thread(target=insert_data_points, args=(id, raw_data))
         insert_thread.start()
 
-        # Calculate the metrics for the entire run using the final dataframe
-        distance = calculate_distance(final_df)
-        speed = calculate_speed(final_df, distance)
-        pace = calculate_pace(final_df, speed)
-        cadence = calculate_cadence(final_df, axis)
-        vertical_oscillation = calculate_vertical_oscillation(final_df, axis)
-        stride_length = calculate_stride_length(final_df, axis, speed)
-        ground_contact_time = calculate_ground_contact_time(final_df, axis)
-        
-        # Measure time taken to calculate metrics
+        # Calculate metrics and return response
+        response_body = calculate_session_metrics(final_df, axis)
         end_time = time.time()
         logging.info(f"Calculated metrics in {end_time - start_time} seconds")
+        response_body["time_taken"] = end_time - start_time
+        return jsonify(response_body), 201
+
+    @app.route('/sessions/<id>/analyze', methods=['POST'])
+    @auth_required
+    def analyze_session(id):
+        # start timer to measure time taken to analyze the split
+        start_time = time.time()
+
+        # Get start and end time from request body
+        request_data = request.get_json()
+        split_start_time = request_data.get('start_time')
+        split_end_time = request_data.get('end_time')
+
+        if not split_start_time or not split_end_time:
+            return jsonify({'error': 'start_time and end_time are required'}), 400
         
-        # Return the metrics to the client
-        return jsonify({
-            "start_time": final_df.iloc[0]['time'],
-            "end_time": final_df.iloc[-1]['time'],
-            "distance": distance,
-            "speed": speed,
-            "pace": pace,
-            "cadence": cadence,
-            "vertical_oscillation": vertical_oscillation,
-            "stride_length": stride_length,
-            "ground_contact_time": ground_contact_time,
-            "time_taken": end_time - start_time
-        }), 201
+        split_data = running_session_data_repo.query_data_by_session_id_and_time_range(id, split_start_time, split_end_time)
+        final_df = create_dataframe_from_dynamo_data(split_data)
+        final_df, axis = clean_and_detect_axis(final_df)
+
+        logging.info(f"Analyzing split with {len(final_df)} points")
+        # Calculate metrics
+        response_body = calculate_session_metrics(final_df, axis)
+        
+        # Measure time taken
+        end_time = time.time()
+        logging.info(f"Calculated metrics in {end_time - start_time} seconds")
+        response_body["total_data_points"] = len(final_df)
+        response_body["time_taken"] = end_time - start_time
+        
+        return jsonify(response_body), 200
