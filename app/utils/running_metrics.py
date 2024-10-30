@@ -4,10 +4,7 @@ from scipy.signal import find_peaks, butter, filtfilt, savgol_filter
 from scipy.fft import fft, ifft
 from math import radians, cos, sin, asin, sqrt
 
-def create_dataframe_and_detect_axis(data):
-    """
-    Converts the input JSON data into a pandas DataFrame.
-    """
+def parse_json_to_dataframe(data):
     records = {
         'time': [entry['time'] for entry in data],
         'latitude': [entry['latitude'] for entry in data],
@@ -26,7 +23,15 @@ def create_dataframe_and_detect_axis(data):
         'z_angle': [entry['angle']['z'] for entry in data]
     }
     
-    df = pd.DataFrame(records)
+    return pd.DataFrame(records)
+
+def create_dataframe_from_dynamo_data(data):
+    return pd.DataFrame(data)
+
+def clean_and_detect_axis(df):
+    numeric_columns = [col for col in df.columns if col not in ['time', 'created_at', 'id', 'running_session_id']]
+    for col in numeric_columns:
+        df[col] = df[col].astype(float)
     df['time'] = pd.to_datetime(df['time'], format="%Y-%m-%dT%H:%M:%S.%f")
     # Sort the dataframe by time in ascending order
     df, axis = final_clean_data(df)
