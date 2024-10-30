@@ -26,6 +26,7 @@ def register_endpoints(app):
     def track_session_data(id):
         data = request.json
         print(f"===============> Tracking session data for {id}. Got {len(data)} points")
+        print(data[0])
         for point in data:
             RunningSessionData(
                 running_session_id=id,
