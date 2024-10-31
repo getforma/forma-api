@@ -58,7 +58,7 @@ def clean_and_detect_axis(df):
     numeric_columns = [col for col in df.columns if col not in ['time', 'created_at', 'id', 'running_session_id']]
     for col in numeric_columns:
         df[col] = df[col].astype(float)
-    df['time'] = pd.to_datetime(df['time'], format="%Y-%m-%dT%H:%M:%S.%f")
+    df['time'] = pd.to_datetime(df['time'], format="%Y-%m-%dT%H:%M:%S.%fZ")
     # Sort the dataframe by time in ascending order
     df, axis = final_clean_data(df)
     df = df.sort_values(by='time', ascending=True)

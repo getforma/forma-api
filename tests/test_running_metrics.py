@@ -21,7 +21,7 @@ class TestRunningMetrics(unittest.TestCase):
         importing sample data
         """
         self.sample_data = pd.read_csv('tests/running_mock_data.csv')
-        self.sample_data['time'] = pd.to_datetime(self.sample_data['time'], format="%Y-%m-%dT%H:%M:%S.%f")
+        self.sample_data['time'] = pd.to_datetime(self.sample_data['time'], format="%Y-%m-%dT%H:%M:%S.%fZ")
         self.sample_data, self.axis = final_clean_data(self.sample_data)
 
     def test_calculate_cadence(self):
