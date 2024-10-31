@@ -17,8 +17,8 @@ def calculate_session_metrics(final_df, axis):
         ground_contact_time = calculate_ground_contact_time(final_df, axis)
 
         metrics = {
-            "start_time": final_df.iloc[0]['time'],
-            "end_time": final_df.iloc[-1]['time'],
+            "start_time": final_df.iloc[0]['time'].isoformat(),
+            "end_time": final_df.iloc[-1]['time'].isoformat(),
             "distance": distance,
             "speed": speed,
             "pace": pace,
