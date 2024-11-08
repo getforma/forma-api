@@ -65,7 +65,7 @@ def register_endpoints(app):
 
         # Parse the raw data received from the device into a dataframe
         raw_data = request.json
-        new_df = create_dataframe_and_detect_axis(raw_data)
+        new_df, axis = create_dataframe_and_detect_axis(raw_data)
         logging.info(f"Tracking session data for {id}. Got {len(raw_data)} points")
 
         # First get existing data and create dataframe
@@ -80,7 +80,8 @@ def register_endpoints(app):
             final_df = pd.concat([df_existing, new_df], ignore_index=True)
             
         # Clean and detect the axis of the running session
-        final_df, axis = clean_and_detect_axis(final_df)
+        axis = detect_up_down_axis(final_df)
+        final_df = final_clean_data(final_df, axis)
         logging.info(f"Final dataframe has {len(final_df)} points")
 
         # Start background thread for data insertion
@@ -110,7 +111,8 @@ def register_endpoints(app):
         
         split_data = running_session_data_repo.query_data_by_session_id_and_time_range(id, split_start_time, split_end_time)
         final_df = create_dataframe_from_dynamo_data(split_data)
-        final_df, axis = clean_and_detect_axis(final_df)
+        axis = detect_up_down_axis(final_df)
+        final_df = final_clean_data(final_df, axis)
 
         logging.info(f"Analyzing split with {len(final_df)} points")
         # Calculate metrics
