@@ -81,7 +81,7 @@ def register_endpoints(app):
             
         # Clean and detect the axis of the running session
         axis = detect_up_down_axis(final_df)
-        final_df = final_clean_data(final_df, axis)
+        final_df, _ = final_clean_data(final_df, axis)
         logging.info(f"Final dataframe has {len(final_df)} points")
 
         # Start background thread for data insertion
@@ -112,7 +112,7 @@ def register_endpoints(app):
         split_data = running_session_data_repo.query_data_by_session_id_and_time_range(id, split_start_time, split_end_time)
         final_df = create_dataframe_from_dynamo_data(split_data)
         axis = detect_up_down_axis(final_df)
-        final_df = final_clean_data(final_df, axis)
+        final_df, _ = final_clean_data(final_df, axis)
 
         logging.info(f"Analyzing split with {len(final_df)} points")
         # Calculate metrics
