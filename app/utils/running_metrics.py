@@ -35,21 +35,21 @@ def create_dataframe_and_detect_axis(data, session_id):
     Converts the input DataFrame into a pandas DataFrame with necessary columns.
     """
     records = {
-        'time': data['time'].tolist(),
-        'latitude': data['latitude'].tolist(),
-        'longitude': data['longitude'].tolist(),
-        'x_acceleration': data['x_acceleration'].tolist(),
-        'y_acceleration': data['y_acceleration'].tolist(),
-        'z_acceleration': data['z_acceleration'].tolist(),
-        'x_angular_velocity': data['x_angular_velocity'].tolist(),
-        'y_angular_velocity': data['y_angular_velocity'].tolist(),
-        'z_angular_velocity': data['z_angular_velocity'].tolist(),
-        'x_magnetic_field': data['x_magnetic_field'].tolist(),
-        'y_magnetic_field': data['y_magnetic_field'].tolist(),
-        'z_magnetic_field': data['z_magnetic_field'].tolist(),
-        'x_angle': data['x_angle'].tolist(),
-        'y_angle': data['y_angle'].tolist(),
-        'z_angle': data['z_angle'].tolist()
+        'time': [entry['time'] for entry in data],
+        'latitude': [entry['latitude'] for entry in data],
+        'longitude': [entry['longitude'] for entry in data],
+        'x_acceleration': [entry['acceleration']['x'] for entry in data],
+        'y_acceleration': [entry['acceleration']['y'] for entry in data],
+        'z_acceleration': [entry['acceleration']['z'] for entry in data],
+        'x_angular_velocity': [entry['angular_velocity']['x'] for entry in data],
+        'y_angular_velocity': [entry['angular_velocity']['y'] for entry in data],
+        'z_angular_velocity': [entry['angular_velocity']['z'] for entry in data],
+        'x_magnetic_field': [entry['magnetic_field']['x'] for entry in data],
+        'y_magnetic_field': [entry['magnetic_field']['y'] for entry in data],
+        'z_magnetic_field': [entry['magnetic_field']['z'] for entry in data],
+        'x_angle': [entry['angle']['x'] for entry in data],
+        'y_angle': [entry['angle']['y'] for entry in data],
+        'z_angle': [entry['angle']['z'] for entry in data]
     }
     
     df = pd.DataFrame(records)
