@@ -3,6 +3,7 @@ from app.auth import auth_required
 from app.entities.running_session import RunningSession
 from app.entities.running_session_data import RunningSessionData
 from app.utils.running_metrics import *
+from app.utils.model import generate_feedback
 import time
 from app.repositories.running_session_data_repository import RunningSessionDataRepository
 import threading
@@ -115,11 +116,15 @@ def register_endpoints(app):
         logging.info(f"Analyzing split with {len(final_df)} points")
         # Calculate metrics
         response_body = calculate_session_metrics(final_df, axis)
+
+        # Generate feedback
+        feedback = generate_feedback(response_body)
         
         # Measure time taken
         end_time = time.time()
         logging.info(f"Calculated metrics in {end_time - start_time} seconds")
         response_body["total_data_points"] = len(final_df)
         response_body["time_taken"] = end_time - start_time
+        response_body["feedback"] = feedback
         
         return jsonify(response_body), 200

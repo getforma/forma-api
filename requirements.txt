@@ -6,3 +6,4 @@ flask
 numpy
 gunicorn
 pytest
+openai
