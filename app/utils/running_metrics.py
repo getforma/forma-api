@@ -3,6 +3,7 @@ import pandas as pd
 from scipy.signal import find_peaks, butter, filtfilt, savgol_filter
 from scipy.fft import fft, ifft
 from math import radians, cos, sin, asin, sqrt
+from scipy.integrate import cumulative_trapezoid
 
 def calculate_session_metrics(final_df, axis):
         """
@@ -30,7 +31,7 @@ def calculate_session_metrics(final_df, axis):
 
         return metrics
 
-def create_dataframe_and_detect_axis(data, session_id):
+def create_dataframe_and_detect_axis(data):
     """
     Converts the input DataFrame into a pandas DataFrame with necessary columns.
     """
@@ -68,6 +69,18 @@ def create_dataframe_and_detect_axis(data, session_id):
     axis = detect_up_down_axis(df, global_acc=True)
     
     df, _ = final_clean_data(df, axis, global_acc=True)
+
+    # Convert numeric columns to float type
+    numeric_columns = [
+        'x_acceleration', 'y_acceleration', 'z_acceleration',
+        'x_angular_velocity', 'y_angular_velocity', 'z_angular_velocity', 
+        'x_magnetic_field', 'y_magnetic_field', 'z_magnetic_field',
+        'x_angle', 'y_angle', 'z_angle',
+        'x_acceleration_global', 'y_acceleration_global', 'z_acceleration_global',
+        'latitude', 'longitude'
+    ]
+    df[numeric_columns] = df[numeric_columns].astype(float)
+
     return df, axis
 
 
@@ -125,6 +138,14 @@ def detect_up_down_axis(data, global_acc=False):
     Detects the axis with the highest standard deviation, assuming it corresponds to the vertical axis.
     Returns the axis as a string: 'x', 'y', or 'z'.
     """
+    # Ensure data exists and convert to float type if needed
+    if not isinstance(data, pd.DataFrame):
+        raise ValueError("Input must be a pandas DataFrame")
+    
+    for col in ['x_acceleration', 'y_acceleration', 'z_acceleration',
+                'x_acceleration_global', 'y_acceleration_global', 'z_acceleration_global']:
+        if col in data.columns:
+            data[col] = data[col].astype(float)
     if global_acc:
         stds = {
             'x': np.std(data['x_acceleration_global']),
@@ -161,6 +182,7 @@ def final_clean_data(data, axis, global_acc=False):
     Returns the cleaned data and the detected axis.
     """
     clean_data = filter_non_running_data(data, axis, global_acc=global_acc)
+    clean_data['time'] = pd.to_datetime(clean_data['time'], format="%Y-%m-%dT%H:%M:%S.%fZ")
     return clean_data, axis
 
 def apply_fft_with_filter(time, data, threshold=0.1):
@@ -313,14 +335,14 @@ def calculate_vertical_oscillation(data, axis) -> float:
 
         # Double integration with proper filtering between steps
         # First integration (acceleration to velocity)
-        velocity = cumtrapz(filtered_acc, time_in_seconds, initial=0)
+        velocity = cumulative_trapezoid(filtered_acc, time_in_seconds, initial=0)
         
         # Apply high-pass filter to velocity to remove drift
         b, a = butter(2, 0.8 / (0.5 * fs), btype='high')
         velocity_filtered = filtfilt(b, a, velocity)
 
         # Second integration (velocity to position)
-        displacement = cumtrapz(velocity_filtered, time_in_seconds, initial=0)
+        displacement = cumulative_trapezoid(velocity_filtered, time_in_seconds, initial=0)
         
         # Apply high-pass filter to displacement to remove drift
         b, a = butter(2, 0.8 / (0.5 * fs), btype='high')
