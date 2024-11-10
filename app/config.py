@@ -6,3 +6,4 @@ class Config:
     RUNNING_SESSIONS_DATA_TABLE = os.getenv('RUNNING_SESSIONS_DATA_TABLE', 'forma-running-sessions-data')
     BASIC_AUTH_USERNAME = os.getenv('BASIC_AUTH_USERNAME', 'admin')
     BASIC_AUTH_PASSWORD = os.getenv('BASIC_AUTH_PASSWORD', 'password')
+    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
