@@ -66,6 +66,7 @@ def register_endpoints(app):
 
         # Parse the raw data received from the device into a dataframe
         raw_data = request.json
+        print(f"Raw data: {raw_data}")
         new_df, axis = create_dataframe_and_detect_axis(raw_data)
         logging.info(f"Tracking session data for {id}. Got {len(raw_data)} points")
 
