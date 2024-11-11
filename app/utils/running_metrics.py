@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import json
 from scipy.signal import find_peaks, butter, filtfilt, savgol_filter
 from scipy.fft import fft, ifft
 from math import radians, cos, sin, asin, sqrt
@@ -35,7 +36,31 @@ def create_dataframe_and_detect_axis(data):
     """
     Converts the input DataFrame into a pandas DataFrame with necessary columns.
     """
+
+    # Check if the input is a nested JSON and flatten it if necessary
+    if isinstance(data, dict) and 'acceleration' in data:
+        # Expand nested fields and create a dictionary with flat structure
+        flattened_data = {
+            'time': data.get('time'),
+            'latitude': data.get('latitude'),
+            'longitude': data.get('longitude'),
+            'x_acceleration': data['acceleration'].get('x'),
+            'y_acceleration': data['acceleration'].get('y'),
+            'z_acceleration': data['acceleration'].get('z'),
+            'x_angular_velocity': data['angular_velocity'].get('x'),
+            'y_angular_velocity': data['angular_velocity'].get('y'),
+            'z_angular_velocity': data['angular_velocity'].get('z'),
+            'x_magnetic_field': data['magnetic_field'].get('x'),
+            'y_magnetic_field': data['magnetic_field'].get('y'),
+            'z_magnetic_field': data['magnetic_field'].get('z'),
+            'x_angle': data['angle'].get('x'),
+            'y_angle': data['angle'].get('y'),
+            'z_angle': data['angle'].get('z')
+        }
+        data = [flattened_data]  # Wrap into a list to create a DataFrame with one row
+
     
+    # Check if the input data is in JSON format
     df = pd.DataFrame(data)
 
     # Convert numeric columns to float64 type

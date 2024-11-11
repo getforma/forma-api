@@ -32,7 +32,7 @@ def register_endpoints(app):
     def insert_data_points(id, raw_data):
         """
         Inserts the new data received from the device into the database in a background thread to not block the API response
-        """
+        """ 
         logging.info(f"Inserting {len(raw_data)} data points for session {id}")
         for point in raw_data:
             RunningSessionData(
@@ -77,16 +77,13 @@ def register_endpoints(app):
         
         if existing_data:
             # Create a dataframe from the existing data and concatenate it with the new dataframe
-            df_existing = create_dataframe_from_dynamo_data(existing_data)
+            df_existing, axis = create_dataframe_and_detect_axis(existing_data)
             final_df = pd.concat([df_existing, new_df], ignore_index=True)
             
-        # Clean and detect the axis of the running session
-        axis = detect_up_down_axis(final_df)
-        final_df, _ = final_clean_data(final_df, axis)
         logging.info(f"Final dataframe has {len(final_df)} points")
 
         # Start background thread for data insertion
-        insert_thread = threading.Thread(target=insert_data_points, args=(id, raw_data))
+        insert_thread = threading.Thread(target=insert_data_points, args=(id, [raw_data]))
         insert_thread.start()
 
         # Calculate metrics and return response
