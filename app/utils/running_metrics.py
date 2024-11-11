@@ -32,34 +32,42 @@ def calculate_session_metrics(final_df, axis):
 
         return metrics
 
+def is_flat(data):
+    # Check if data is already flat by looking for nested fields
+    sample_entry = data[0] if isinstance(data, list) and data else data
+    return all(key not in sample_entry for key in ['acceleration', 'angular_velocity', 'magnetic_field', 'angle'])
+
+def flatten_data(data):
+    # Flatten each entry if necessary
+    flattened_data = []
+    for entry in data:
+        flattened_entry = {
+            'time': entry.get('time'),
+            'latitude': entry.get('latitude'),
+            'longitude': entry.get('longitude'),
+            'x_acceleration': entry['acceleration'].get('x') if 'acceleration' in entry else None,
+            'y_acceleration': entry['acceleration'].get('y') if 'acceleration' in entry else None,
+            'z_acceleration': entry['acceleration'].get('z') if 'acceleration' in entry else None,
+            'x_angular_velocity': entry['angular_velocity'].get('x') if 'angular_velocity' in entry else None,
+            'y_angular_velocity': entry['angular_velocity'].get('y') if 'angular_velocity' in entry else None,
+            'z_angular_velocity': entry['angular_velocity'].get('z') if 'angular_velocity' in entry else None,
+            'x_magnetic_field': entry['magnetic_field'].get('x') if 'magnetic_field' in entry else None,
+            'y_magnetic_field': entry['magnetic_field'].get('y') if 'magnetic_field' in entry else None,
+            'z_magnetic_field': entry['magnetic_field'].get('z') if 'magnetic_field' in entry else None,
+            'x_angle': entry['angle'].get('x') if 'angle' in entry else None,
+            'y_angle': entry['angle'].get('y') if 'angle' in entry else None,
+            'z_angle': entry['angle'].get('z') if 'angle' in entry else None
+        }
+        flattened_data.append(flattened_entry)
+    return flattened_data
+
 def create_dataframe_and_detect_axis(data):
     """
     Converts the input DataFrame into a pandas DataFrame with necessary columns.
     """
+    if not is_flat(data):
+        data = flatten_data(data)
 
-    # Check if the input is a nested JSON and flatten it if necessary
-    if isinstance(data, dict) and 'acceleration' in data:
-        # Expand nested fields and create a dictionary with flat structure
-        flattened_data = {
-            'time': data.get('time'),
-            'latitude': data.get('latitude'),
-            'longitude': data.get('longitude'),
-            'x_acceleration': data['acceleration'].get('x'),
-            'y_acceleration': data['acceleration'].get('y'),
-            'z_acceleration': data['acceleration'].get('z'),
-            'x_angular_velocity': data['angular_velocity'].get('x'),
-            'y_angular_velocity': data['angular_velocity'].get('y'),
-            'z_angular_velocity': data['angular_velocity'].get('z'),
-            'x_magnetic_field': data['magnetic_field'].get('x'),
-            'y_magnetic_field': data['magnetic_field'].get('y'),
-            'z_magnetic_field': data['magnetic_field'].get('z'),
-            'x_angle': data['angle'].get('x'),
-            'y_angle': data['angle'].get('y'),
-            'z_angle': data['angle'].get('z')
-        }
-        data = [flattened_data]  # Wrap into a list to create a DataFrame with one row
-
-    print(f"Flattened data: {flattened_data}")
     # Check if the input data is in JSON format
     df = pd.DataFrame(data)
 

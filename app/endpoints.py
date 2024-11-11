@@ -84,7 +84,7 @@ def register_endpoints(app):
         logging.info(f"Final dataframe has {len(final_df)} points")
 
         # Start background thread for data insertion
-        insert_thread = threading.Thread(target=insert_data_points, args=(id, [raw_data]))
+        insert_thread = threading.Thread(target=insert_data_points, args=(id, raw_data))
         insert_thread.start()
 
         # Calculate metrics and return response
