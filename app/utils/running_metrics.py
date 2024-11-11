@@ -59,7 +59,7 @@ def create_dataframe_and_detect_axis(data):
         }
         data = [flattened_data]  # Wrap into a list to create a DataFrame with one row
 
-    
+    print(f"Flattened data: {flattened_data}")
     # Check if the input data is in JSON format
     df = pd.DataFrame(data)
 
