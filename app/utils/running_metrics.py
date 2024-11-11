@@ -35,25 +35,18 @@ def create_dataframe_and_detect_axis(data):
     """
     Converts the input DataFrame into a pandas DataFrame with necessary columns.
     """
-    records = {
-        'time': [entry['time'] for entry in data],
-        'latitude': [entry['latitude'] for entry in data],
-        'longitude': [entry['longitude'] for entry in data],
-        'x_acceleration': [entry['acceleration']['x'] for entry in data],
-        'y_acceleration': [entry['acceleration']['y'] for entry in data],
-        'z_acceleration': [entry['acceleration']['z'] for entry in data],
-        'x_angular_velocity': [entry['angular_velocity']['x'] for entry in data],
-        'y_angular_velocity': [entry['angular_velocity']['y'] for entry in data],
-        'z_angular_velocity': [entry['angular_velocity']['z'] for entry in data],
-        'x_magnetic_field': [entry['magnetic_field']['x'] for entry in data],
-        'y_magnetic_field': [entry['magnetic_field']['y'] for entry in data],
-        'z_magnetic_field': [entry['magnetic_field']['z'] for entry in data],
-        'x_angle': [entry['angle']['x'] for entry in data],
-        'y_angle': [entry['angle']['y'] for entry in data],
-        'z_angle': [entry['angle']['z'] for entry in data]
-    }
     
-    df = pd.DataFrame(records)
+    df = pd.DataFrame(data)
+
+    # Convert numeric columns to float64 type
+    numeric_columns = [
+        'x_acceleration', 'y_acceleration', 'z_acceleration',
+        'x_angular_velocity', 'y_angular_velocity', 'z_angular_velocity', 
+        'x_magnetic_field', 'y_magnetic_field', 'z_magnetic_field',
+        'x_angle', 'y_angle', 'z_angle',
+        'latitude', 'longitude'
+    ]
+    df[numeric_columns] = df[numeric_columns].astype(float)
     df['time'] = pd.to_datetime(df['time'], format="%Y-%m-%dT%H:%M:%S.%fZ")
     
     # Sort the dataframe by time in ascending order
@@ -69,17 +62,6 @@ def create_dataframe_and_detect_axis(data):
     axis = detect_up_down_axis(df, global_acc=True)
     
     df, _ = final_clean_data(df, axis, global_acc=True)
-
-    # Convert numeric columns to float type
-    numeric_columns = [
-        'x_acceleration', 'y_acceleration', 'z_acceleration',
-        'x_angular_velocity', 'y_angular_velocity', 'z_angular_velocity', 
-        'x_magnetic_field', 'y_magnetic_field', 'z_magnetic_field',
-        'x_angle', 'y_angle', 'z_angle',
-        'x_acceleration_global', 'y_acceleration_global', 'z_acceleration_global',
-        'latitude', 'longitude'
-    ]
-    df[numeric_columns] = df[numeric_columns].astype(float)
 
     return df, axis
 
@@ -159,7 +141,6 @@ def detect_up_down_axis(data, global_acc=False):
             'z': np.std(data['z_acceleration'])
         }
     return max(stds, key=stds.get)
-
 
 def filter_non_running_data(data, axis, global_acc=False, threshold=0.2):
     """
@@ -369,7 +350,6 @@ def calculate_vertical_oscillation(data, axis) -> float:
         print(f"Error calculating vertical oscillation: {e}")
         return 0.0
 
-
 def calculate_stride_length(data, axis, total_distance) -> float:
     """
     Calculates the average stride length.
@@ -408,7 +388,6 @@ def calculate_stride_length(data, axis, total_distance) -> float:
     except Exception as e:
         print(f"Error calculating stride length: {e}")
         return 0.0
-
 
 def calculate_ground_contact_time(data, axis, fft_threshold=2.2) -> float:
     """
