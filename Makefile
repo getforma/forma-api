@@ -18,7 +18,7 @@ run:
 
 # Run tests
 test:
-	$(PYTHON) -m pytest
+	$(PYTHON) -m pytest tests/ -p no:warnings
 
 # Clean up pyc files
 clean:
