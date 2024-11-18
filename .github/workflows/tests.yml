@@ -1,4 +1,4 @@
-name: Python Tests
+name: Forma API Tests
 
 on:
   push:
@@ -9,14 +9,6 @@ on:
 jobs:
   e2e_testing:
     runs-on: ubuntu-latest
-
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      RUNNING_SESSIONS_DATA_TABLE: ${{ secrets.RUNNING_SESSIONS_DATA_TABLE }}
-      RUNNING_SESSIONS_TABLE: ${{ secrets.RUNNING_SESSIONS_TABLE }}
 
     steps:
     - uses: actions/checkout@v3
