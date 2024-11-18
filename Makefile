@@ -18,7 +18,7 @@ run:
 
 # Run tests
 test:
-	$(PYTHON) -m pytest tests/ -p no:warnings
+	FLASK_ENV=test $(PYTHON) -m pytest tests/ -s -p no:warnings
 
 # Clean up pyc files
 clean:

@@ -1,28 +1,26 @@
 import logging
+import os
 from unittest import TestCase
 from wsgi import app
-from moto import mock_aws
 import uuid
 from tests.mock_data import *
-from tests.setup_dynamo_mock import setup_dynamo_mock
+from app.config import Config
 class FormaAPIEndpoints(TestCase):
     @classmethod
-    @mock_aws
     def setUpClass(cls):
         """Run once before all tests"""
         app.config["TESTING"] = True
         app.config["DEBUG"] = False
         app.logger.setLevel(logging.CRITICAL)
         app.app_context().push()
-        
-        # Create mock DynamoDB tables
-        setup_dynamo_mock()
+        print("================", Config.is_test())
 
     def setUp(self):
         """Runs before each test"""
         self.client = app.test_client()
 
     def test_index(self):
+        print(os.getenv('FLASK_ENV', None))
         """It should call the home page"""
         resp = self.client.get("/")
         self.assertEqual(resp.status_code, 200)
