@@ -13,14 +13,12 @@ class FormaAPIEndpoints(TestCase):
         app.config["DEBUG"] = False
         app.logger.setLevel(logging.CRITICAL)
         app.app_context().push()
-        print("================", Config.is_test())
 
     def setUp(self):
         """Runs before each test"""
         self.client = app.test_client()
 
     def test_index(self):
-        print(os.getenv('FLASK_ENV', None))
         """It should call the home page"""
         resp = self.client.get("/")
         self.assertEqual(resp.status_code, 200)

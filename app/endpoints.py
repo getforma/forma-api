@@ -20,7 +20,6 @@ def register_endpoints(app):
     @app.route('/sessions', methods=['POST'])
     @auth_required
     def create_new_session():
-        print(f"Creating new session!!!!!!!!")
         data = request.json
         run = RunningSession(
             device_id=data['device_id'],
