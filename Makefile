@@ -16,9 +16,9 @@ install:
 run:
 	$(PYTHON) -m flask run
 
-# Run tests
+# Run tests with coverage
 test:
-	FLASK_ENV=test $(PYTHON) -m pytest tests/ -s -p no:warnings
+	FLASK_ENV=test $(PYTHON) -m pytest tests/ -p no:warnings --cov=. --cov-report=xml --cov-report=term-missing:skip-covered
 
 # Clean up pyc files
 clean:
