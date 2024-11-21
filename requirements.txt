@@ -9,4 +9,3 @@ pytest
 openai
 requests
 pytest-cov
-moto
