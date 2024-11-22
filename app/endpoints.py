@@ -5,12 +5,13 @@ from app.entities.running_session_data import RunningSessionData
 from app.utils.running_metrics import *
 from app.utils.model import generate_feedback
 import time
-from app.repositories.running_session_data_repository import RunningSessionDataRepository
+from app.repositories.repository_factory import RepositoryFactory
+from app.config import Config
 import threading
 import logging
 
 
-running_session_data_repo = RunningSessionDataRepository()
+running_session_data_repo = RepositoryFactory.get_repository(Config.RUNNING_SESSIONS_DATA_TABLE)
 
 def register_endpoints(app):
     @app.route('/', methods=['GET'])
@@ -71,7 +72,7 @@ def register_endpoints(app):
         logging.info(f"Tracking session data for {id}. Got {len(raw_data)} points")
 
         # First get existing data and create dataframe
-        existing_data = running_session_data_repo.query_data_by_session_id(id)
+        existing_data = running_session_data_repo.query_by_session_id(id)
         logging.info(f"Queried {len(existing_data)} existing points for session {id}")
 
         final_df = new_df
@@ -92,6 +93,7 @@ def register_endpoints(app):
         end_time = time.time()
         logging.info(f"Calculated metrics in {end_time - start_time} seconds")
         response_body["time_taken"] = end_time - start_time
+        response_body["total_datapoints"] = len(final_df)
         return jsonify(response_body), 201
 
     @app.route('/sessions/<id>/analyze', methods=['POST'])
@@ -108,7 +110,7 @@ def register_endpoints(app):
         if not split_start_time or not split_end_time:
             return jsonify({'error': 'start_time and end_time are required'}), 400
         
-        split_data = running_session_data_repo.query_data_by_session_id_and_time_range(id, split_start_time, split_end_time)
+        split_data = running_session_data_repo.query_by_session_id_and_time_range(id, split_start_time, split_end_time)
         # final_df = create_dataframe_from_dynamo_data(split_data)
         # axis = detect_up_down_axis(final_df)
         # final_df, _ = final_clean_data(final_df, axis)

@@ -1,10 +1,8 @@
 import logging
-import os
 from unittest import TestCase
 from wsgi import app
 import uuid
 from tests.mock_data import *
-from app.config import Config
 class FormaAPIEndpoints(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -18,6 +16,51 @@ class FormaAPIEndpoints(TestCase):
         """Runs before each test"""
         self.client = app.test_client()
 
+    def _create_session(self):
+        """Helper method to create a session and return its data"""
+        body = create_session_body()
+        headers = auth_headers()
+        resp = self.client.post("/sessions", json=body, headers=headers)
+        self.assertEqual(resp.status_code, 201)
+        return resp.get_json(), body, headers
+
+    def _validate_session_data(self, data, body):
+        """Helper method to validate session response data"""
+        required_fields = ['created_at', 'id', 'device_id', 'device_position', 'user_name']
+        for field in required_fields:
+            self.assertIn(field, data)
+        
+        self.assertEqual(data['device_id'], body['device_id'])
+        self.assertEqual(data['device_position'], body['device_position']) 
+        self.assertEqual(data['user_name'], body['user_name'])
+        
+        try:
+            uuid.UUID(data['id'])
+        except ValueError:
+            self.fail("id is not a valid UUID")
+
+    def _validate_tracking_data(self, data):
+        """Helper method to validate tracking response data"""
+        expected_fields = [
+            'start_time', 'end_time', 'distance', 'speed', 'pace', 
+            'cadence', 'vertical_oscillation', 'stride_length', 
+            'ground_contact_time', 'time_taken', 'total_datapoints'
+        ]
+        
+        # Validate presence of fields
+        for field in expected_fields:
+            self.assertIn(field, data)
+        
+        # Validate types
+        self.assertIsInstance(data['start_time'], str)
+        self.assertIsInstance(data['end_time'], str)
+        numeric_fields = ['distance', 'speed', 'pace', 'cadence', 
+                         'vertical_oscillation', 'stride_length', 
+                         'ground_contact_time', 'time_taken']
+        for field in numeric_fields:
+            self.assertIsInstance(data[field], (int, float))
+        self.assertIsInstance(data['total_datapoints'], int)
+
     def test_index(self):
         """It should call the home page"""
         resp = self.client.get("/")
@@ -27,20 +70,39 @@ class FormaAPIEndpoints(TestCase):
 
     def test_create_running_session(self):
         """It should create a running session"""
-        body = create_session_body()
-        headers = auth_headers()
-        resp = self.client.post("/sessions", json=body, headers=headers)
+        data, body, _ = self._create_session()
+        self._validate_session_data(data, body)
+    
+    def test_track_running_session(self):
+        """It should track a running session"""
+        session_data, _, headers = self._create_session()
+        
+        track_body = track_session_body()
+        resp = self.client.post(
+            f"/sessions/{session_data['id']}/track", 
+            json=track_body, 
+            headers=headers
+        )
         self.assertEqual(resp.status_code, 201)
-        data = resp.get_json()
-        self.assertIn('created_at', data)
-        self.assertIn('id', data)
-        self.assertIn('device_id', data)
-        self.assertIn('device_position', data)
-        self.assertIn('user_name', data)
-        self.assertEqual(data['device_id'], body['device_id'])
-        self.assertEqual(data['device_position'], body['device_position']) 
-        self.assertEqual(data['user_name'], body['user_name'])
-        try:
-            uuid.UUID(data['id'])
-        except ValueError:
-            self.fail("id is not a valid UUID")
+        self._validate_tracking_data(resp.get_json())
+
+    def test_track_running_session_multiple_times(self):
+        """It should track a running session multiple times"""
+        session_data, _, headers = self._create_session()
+        session_id = session_data['id']
+
+        # First tracking
+        resp = self.client.post(
+            f"/sessions/{session_id}/track", 
+            json=track_session_body(), 
+            headers=headers
+        )
+        self.assertEqual(resp.get_json()['total_datapoints'], 9)
+
+        # Second tracking
+        resp = self.client.post(
+            f"/sessions/{session_id}/track", 
+            json=additional_track_session_body(), 
+            headers=headers
+        )
+        self.assertEqual(resp.get_json()['total_datapoints'], 18)

@@ -1,4 +1,5 @@
 # Forma API
+[![codecov](https://codecov.io/gh/getforma/forma-api/branch/main/graph/badge.svg)](https://codecov.io/gh/getforma/forma-api)
 
 ## Instructions
 
