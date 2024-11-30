@@ -1,22 +1,34 @@
+import jwt
+from datetime import datetime, timedelta
+
 def create_session_body():
     """Returns the test body for creating a running session"""
     return {
-        "user_name": "test_user",
+        "user_name": "Test User",
         "device_id": "test_device",
         "device_position": "PelvisBack"
     }
 
 
-def auth_headers():
-    """Returns the test headers for basic auth"""
+def create_test_token(email="test@example.com"):
+    """Creates a test JWT token"""
+    payload = {
+        "iss": "https://accounts.google.com",
+        "email": email,
+        "name": "Test User",
+        "exp": datetime.utcnow() + timedelta(hours=1)
+    }
+    return jwt.encode(payload, "dummy-secret")
+
+
+def auth_headers(email="test@example.com"):
+    """Returns the test headers with JWT token"""
+    token = create_test_token(email)
     return {
-        'Authorization': 'Basic YWRtaW46cGFzc3dvcmQ='
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json'
     }
 
-
-'''
-
-'''
 
 
 def track_session_body():
