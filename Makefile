@@ -27,7 +27,7 @@ run:
 # Create databases
 create-dbs:
 	PGPASSWORD=$(DB_PASSWORD) $(PSQL) -h $(DB_HOST) -U $(DB_USER) -d postgres -c "CREATE DATABASE $(DB_NAME_DEV);"
-	PGPASSWORD=$(DB_PASSWORD) $(PSQL) -h $(DB_HOST) -U $(DB_USER) -d postgres -c "CREATE DATABASE $(DB_NAME_TEST);"
+	PGPASSWORD=$(DB_PASSWORD) $(PSQL) -h $(DB_HOST) -U $(DB_USER) -d postgres -c "CREATE DATABASE $(DB_NAME_TEST) WITH TEMPLATE template0;" || true
 	PGPASSWORD=$(DB_PASSWORD) $(PSQL) -h $(DB_HOST) -U $(DB_USER) -d postgres -c "GRANT ALL PRIVILEGES ON DATABASE $(DB_NAME_DEV) TO $(DB_USER);"
 	PGPASSWORD=$(DB_PASSWORD) $(PSQL) -h $(DB_HOST) -U $(DB_USER) -d postgres -c "GRANT ALL PRIVILEGES ON DATABASE $(DB_NAME_TEST) TO $(DB_USER);"
 	# Grant schema permissions for development database
