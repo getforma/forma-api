@@ -13,7 +13,10 @@ class Config:
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
     
     # Use different database URLs based on environment
-    SQLALCHEMY_DATABASE_URI = os.getenv('TEST_DATABASE_URL' if ENV == 'test' else 'DATABASE_URL')
+    database_url = os.getenv('TEST_DATABASE_URL' if ENV == 'test' else 'DATABASE_URL')
+    if database_url and database_url.startswith('postgres://'):
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    SQLALCHEMY_DATABASE_URI = database_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     @classmethod

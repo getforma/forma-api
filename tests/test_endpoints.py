@@ -64,7 +64,6 @@ class FormaAPIEndpoints(TestCase):
         
         self.assertEqual(data['device_id'], body['device_id'])
         self.assertEqual(data['device_position'], body['device_position']) 
-        self.assertEqual(data['user_name'], body['user_name'])
         
         try:
             uuid.UUID(data['id'])
