@@ -4,6 +4,14 @@
 PYTHON = python3
 FLASK = flask
 PIP = pip
+PSQL = psql
+
+# Database variables
+DB_USER = forma
+DB_PASSWORD = forma
+DB_HOST = localhost
+DB_NAME_DEV = forma_dev
+DB_NAME_TEST = forma_test
 
 # Default target
 all: install run
@@ -16,6 +24,22 @@ install:
 run:
 	$(PYTHON) -m flask run
 
+# Create databases
+create-dbs:
+	$(PSQL) -U postgres -c "CREATE DATABASE $(DB_NAME_DEV);"
+	$(PSQL) -U postgres -c "CREATE DATABASE $(DB_NAME_TEST);"
+	$(PSQL) -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE $(DB_NAME_DEV) TO $(DB_USER);"
+	$(PSQL) -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE $(DB_NAME_TEST) TO $(DB_USER);"
+
+# Drop databases
+drop-dbs:
+	$(PSQL) -U postgres -c "DROP DATABASE IF EXISTS $(DB_NAME_DEV);"
+	$(PSQL) -U postgres -c "DROP DATABASE IF EXISTS $(DB_NAME_TEST);"
+
+# Run migrations
+migrate:
+	$(FLASK) db upgrade
+
 # Run tests with coverage
 test:
 	FLASK_ENV=test $(PYTHON) -m pytest tests/ -p no:warnings --cov=. --cov-report=xml --cov-report=term-missing:skip-covered
@@ -25,5 +49,8 @@ clean:
 	find . -type f -name "*.pyc" -delete
 	find . -type d -name "__pycache__" -delete
 
+# Reset everything and setup fresh
+reset: drop-dbs create-dbs migrate
+
 # Phony targets
-.PHONY: all install run test clean
+.PHONY: all install run test clean create-dbs drop-dbs migrate reset

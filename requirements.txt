@@ -9,3 +9,10 @@ pytest
 openai
 requests
 pytest-cov
+psycopg2-binary
+SQLAlchemy
+alembic
+Flask-SQLAlchemy
+Flask-Migrate
+python-dotenv
+PyJWT
