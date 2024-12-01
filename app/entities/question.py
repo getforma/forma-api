@@ -6,18 +6,28 @@ class Question(db.Model):
     __tablename__ = 'questions'
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid4()))
-    question_text = db.Column(db.String(255), nullable=False)
-    question_type = db.Column(db.String(255), nullable=False)
+    label = db.Column(db.String(255), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     options = db.relationship('Option', backref='question', lazy=True)
+    sort_index = db.Column(db.Integer, nullable=True)
+    questionnaire_id = db.Column(db.String(36), db.ForeignKey('questionnaires.id'), nullable=False)
 
     def to_dict(self):
         return {
             'id': self.id,
-            'question_text': self.question_text,
-            'question_type': self.question_type,
+            'label': self.label,
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat(),
-            'options': [option.to_dict() for option in self.options]
+            'options': [option.to_dict() for option in self.options],
+            'questionnaire_id': self.questionnaire_id,
+            'sort_index': self.sort_index
         } 
+    
+    def serialize(self):
+        return {
+            'id': self.id,
+            'sort_index': self.sort_index,
+            'label': self.label,
+            'options': [option.serialize() for option in self.options],
+        }
