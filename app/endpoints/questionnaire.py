@@ -35,12 +35,8 @@ def register_questionnaire_endpoints(app):
                 db.session.add(question)
 
                 for option_data in question_data.get('options', []):
-                    print("===========option_data", option_data)
-                    if not option_data.get('label') or not option_data.get('value'):
-                        print("===========option label", option_data.get('label'))
-                        print("===========option value", option_data.get('value'))
+                    if not option_data.get('label') or option_data.get('value') is None:
                         return jsonify({'error': 'Label and value are required for all options'}), HTTPStatus.BAD_REQUEST
-                        
                     option = Option(
                         label=option_data['label'],
                         value=option_data['value'],
