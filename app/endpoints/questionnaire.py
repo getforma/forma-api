@@ -11,7 +11,6 @@ def register_questionnaire_endpoints(app):
     @jwt_required
     def create_questionnaire():
         data = request.get_json()
-        print(data)
         if not data or not data.get('name') or not data.get('key'):
             return jsonify({'error': 'Name and key are required'}), HTTPStatus.BAD_REQUEST
             
@@ -36,6 +35,7 @@ def register_questionnaire_endpoints(app):
                 db.session.add(question)
 
                 for option_data in question_data.get('options', []):
+                    print("===========option_data", option_data)
                     if not option_data.get('label') or not option_data.get('value'):
                         return jsonify({'error': 'Label and value are required for all options'}), HTTPStatus.BAD_REQUEST
                         
@@ -52,7 +52,6 @@ def register_questionnaire_endpoints(app):
             
         except Exception as e:
             db.session.rollback()
-            print(e)
             return jsonify({'error': str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
         
     @app.route('/questionnaires/<string:key>', methods=['GET'])
