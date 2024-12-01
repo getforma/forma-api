@@ -21,6 +21,7 @@ class TestQuestionnaireEndpoints(FormaAPIEndpoints):
             "questions": [
                 {
                     "label": "How do you feel today?",
+                    "question_type": "multiple_choice",
                     "options": [
                         {"label": "Great", "value": 5},
                         {"label": "Good", "value": 4},
@@ -29,6 +30,7 @@ class TestQuestionnaireEndpoints(FormaAPIEndpoints):
                 },
                 {
                     "label": "Energy level?",
+                    "question_type": "multiple_choice",
                     "options": [
                         {"label": "High", "value": 3},
                         {"label": "Medium", "value": 2},
@@ -56,6 +58,7 @@ class TestQuestionnaireEndpoints(FormaAPIEndpoints):
             "questions": [
                 {
                     "label": "How do you feel today?",
+                    "question_type": "multiple_choice",
                     "options": [{"label": "Great", "value": 5}]
                 }
             ]
@@ -73,6 +76,7 @@ class TestQuestionnaireEndpoints(FormaAPIEndpoints):
             "questions": [
                 {
                     "label": "Sleep quality?",
+                    "question_type": "multiple_choice",
                     "options": [
                         {"label": "Good", "value": 3},
                         {"label": "Poor", "value": 1}
@@ -108,9 +112,9 @@ class TestQuestionnaireEndpoints(FormaAPIEndpoints):
             "name": "Ordered Questions",
             "key": "ordered",
             "questions": [
-                {"label": "Question 1", "options": [{"label": "Yes", "value": 1}]},
-                {"label": "Question 2", "options": [{"label": "Yes", "value": 1}]},
-                {"label": "Question 3", "options": [{"label": "Yes", "value": 1}]}
+                {"label": "Question 1", "question_type": "multiple_choice", "options": [{"label": "Yes", "value": 1}]},
+                {"label": "Question 2", "question_type": "multiple_choice", "options": [{"label": "Yes", "value": 1}]},
+                {"label": "Question 3", "question_type": "multiple_choice", "options": [{"label": "Yes", "value": 1}]}
             ]
         }
         

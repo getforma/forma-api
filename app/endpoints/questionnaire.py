@@ -24,13 +24,14 @@ def register_questionnaire_endpoints(app):
             )
             db.session.add(questionnaire)
             for i, question_data in enumerate(data['questions']):
-                if not question_data.get('label'):
+                if not question_data.get('label') or question_data.get('question_type') is None:
                     return jsonify({'error': 'Label is required for all questions'}), HTTPStatus.BAD_REQUEST
                     
                 question = Question(
                     label=question_data['label'],
                     questionnaire=questionnaire,
                     sort_index=i,
+                    question_type=question_data.get('question_type', 'multiple_choice')
                 )
                 db.session.add(question)
 
