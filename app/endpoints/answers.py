@@ -28,13 +28,17 @@ def register_answers_endpoints(app):
                 
             # Create answer records
             for answer_data in data['data']:
-                answer = Answer(
-                    user_id=request.user.id,
-                    question_id=answer_data['question_id'],
-                    running_session_id=data['running_session_id'],
-                    value=answer_data['answer_value']
-                )
-                db.session.add(answer)
+                answer_value = answer_data['answer_value']
+                values = answer_value if isinstance(answer_value, list) else [answer_value]
+                
+                for value in values:
+                    answer = Answer(
+                        user_id=request.user.id,
+                        question_id=answer_data['question_id'],
+                        running_session_id=data['running_session_id'],
+                        value=value
+                    )
+                    db.session.add(answer)
                 
             db.session.commit()
             return jsonify({'message': 'Answers recorded successfully', 'score': 42}), HTTPStatus.CREATED
