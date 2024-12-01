@@ -3,7 +3,6 @@ from app.database import db
 from app.entities.questionnaire import Questionnaire
 from app.entities.question import Question
 from app.entities.option import Option
-
 class TestQuestionnaireEndpoints(FormaAPIEndpoints):
     def tearDown(self):
         """Runs after each test"""
@@ -11,6 +10,7 @@ class TestQuestionnaireEndpoints(FormaAPIEndpoints):
         db.session.query(Option).delete()
         db.session.query(Question).delete()
         db.session.query(Questionnaire).delete()
+        
         super().tearDown()  # Clean up user from parent class
 
     def test_create_questionnaire(self):

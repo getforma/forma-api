@@ -3,6 +3,7 @@ from app.auth.jwt_decoder import jwt_required
 from app.entities.question import Question
 from app.entities.questionnaire import Questionnaire
 from app.entities.option import Option
+from app.entities.answer import Answer
 from app.database import db
 from http import HTTPStatus
 
