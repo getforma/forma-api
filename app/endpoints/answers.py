@@ -2,6 +2,7 @@ from flask import request, jsonify
 from app.auth.jwt_decoder import jwt_required
 from app.entities.question import Question
 from app.entities.answer import Answer
+from app.entities.option import Option
 from app.database import db
 from http import HTTPStatus
 
@@ -17,7 +18,7 @@ def register_answers_endpoints(app):
             return jsonify({'error': 'data must be an array'}), HTTPStatus.BAD_REQUEST
             
         try:
-            # Validate all question IDs belong to this questionnaire
+            # Validate all question IDs and option IDs
             question_ids = {str(answer['question_id']) for answer in data['data']}
             questions = Question.query.filter(
                 Question.id.in_(question_ids)
@@ -25,18 +26,34 @@ def register_answers_endpoints(app):
             
             if len(questions) != len(question_ids):
                 return jsonify({'error': 'Invalid question IDs provided'}), HTTPStatus.BAD_REQUEST
-                
+            
+            # Collect and validate all option IDs
+            all_option_ids = set()
+            for answer_data in data['data']:
+                option_ids = answer_data['answer_value']
+                if isinstance(option_ids, str):
+                    all_option_ids.add(option_ids)
+                elif isinstance(option_ids, list):
+                    all_option_ids.update(option_ids)
+                else:
+                    return jsonify({'error': 'answer_value must be an option ID or array of option IDs'}), HTTPStatus.BAD_REQUEST
+            
+            # Verify options exist and belong to the correct questions
+            options = Option.query.filter(Option.id.in_(all_option_ids)).all()
+            if len(options) != len(all_option_ids):
+                return jsonify({'error': 'Invalid option IDs provided'}), HTTPStatus.BAD_REQUEST
+            
             # Create answer records
             for answer_data in data['data']:
-                answer_value = answer_data['answer_value']
-                values = answer_value if isinstance(answer_value, list) else [answer_value]
+                option_ids = answer_data['answer_value']
+                ids = option_ids if isinstance(option_ids, list) else [option_ids]
                 
-                for value in values:
+                for option_id in ids:
                     answer = Answer(
                         user_id=request.user.id,
                         question_id=answer_data['question_id'],
                         running_session_id=data['running_session_id'],
-                        value=value
+                        option_id=option_id
                     )
                     db.session.add(answer)
                 

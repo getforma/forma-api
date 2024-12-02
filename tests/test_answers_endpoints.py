@@ -46,12 +46,16 @@ class TestAnswersEndpoints(FormaAPIEndpoints):
         created_data = create_resp.get_json()
         questions = created_data['questions']
         
-        # Submit answers
+        # Get the options for each question
+        q1_options = questions[0]['options']
+        q2_options = questions[1]['options']
+        
+        # Submit answers using option IDs
         answer_data = {
             "running_session_id": "test_session_123",
             "data": [
-                {"question_id": questions[0]['id'], "answer_value": 5},
-                {"question_id": questions[1]['id'], "answer_value": 1}
+                {"question_id": questions[0]['id'], "answer_value": q1_options[0]['id']},  # "Very" option
+                {"question_id": questions[1]['id'], "answer_value": q2_options[1]['id']}   # "Low" option
             ]
         }
         
@@ -89,6 +93,76 @@ class TestAnswersEndpoints(FormaAPIEndpoints):
         # Missing data array
         answer_data = {
             "running_session_id": "test_session_123"
+        }
+        
+        resp = self.client.post("/answers", json=answer_data, headers=self.headers)
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn('error', resp.get_json()) 
+
+    def test_create_answer_with_multiple_options(self):
+        """It should record answers with multiple selected options"""
+        # First create a questionnaire with a multiple-select question
+        questionnaire_data = {
+            "name": "Multiple Choice Test",
+            "key": "multiple_choice_test",
+            "questions": [
+                {
+                    "label": "Select all that apply",
+                    "question_type": "multiple_select",
+                    "options": [
+                        {"label": "Option A", "value": 1},
+                        {"label": "Option B", "value": 2},
+                        {"label": "Option C", "value": 3}
+                    ]
+                }
+            ]
+        }
+        
+        create_resp = self.client.post("/questionnaires", json=questionnaire_data, headers=self.headers)
+        created_data = create_resp.get_json()
+        question = created_data['questions'][0]
+        options = question['options']
+        
+        # Submit multiple options as answer
+        answer_data = {
+            "running_session_id": "test_session_123",
+            "data": [
+                {
+                    "question_id": question['id'], 
+                    "answer_value": [options[0]['id'], options[1]['id']]  # Select first two options
+                }
+            ]
+        }
+        
+        resp = self.client.post("/answers", json=answer_data, headers=self.headers)
+        self.assertEqual(resp.status_code, 201)
+        data = resp.get_json()
+        self.assertIn('message', data)
+
+    def test_create_answer_invalid_option_ids(self):
+        """It should reject answers with invalid option IDs"""
+        # Create a basic questionnaire first
+        questionnaire_data = {
+            "name": "Test",
+            "key": "test",
+            "questions": [
+                {
+                    "label": "Question 1",
+                    "question_type": "multiple_choice",
+                    "options": [{"label": "Option A", "value": 1}]
+                }
+            ]
+        }
+        
+        create_resp = self.client.post("/questionnaires", json=questionnaire_data, headers=self.headers)
+        created_data = create_resp.get_json()
+        question = created_data['questions'][0]
+        
+        answer_data = {
+            "running_session_id": "test_session_123",
+            "data": [
+                {"question_id": question['id'], "answer_value": "invalid_option_id"}
+            ]
         }
         
         resp = self.client.post("/answers", json=answer_data, headers=self.headers)

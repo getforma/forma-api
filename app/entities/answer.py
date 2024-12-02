@@ -6,7 +6,7 @@ class Answer(db.Model):
     __tablename__ = 'answers'
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid4()))
-    value = db.Column(db.Integer, nullable=False)
+    option_id = db.Column(db.String(36), db.ForeignKey('options.id'), nullable=True)
     question_id = db.Column(db.String(36), db.ForeignKey('questions.id'), nullable=False)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     running_session_id = db.Column(db.String(100), nullable=False)
@@ -16,7 +16,7 @@ class Answer(db.Model):
     def to_dict(self):
         return {
             'id': self.id,
-            'value': self.value,
+            'option_id': self.option_id,
             'question_id': self.question_id,
             'user_id': self.user_id,
             'running_session_id': self.running_session_id,
@@ -28,6 +28,7 @@ class Answer(db.Model):
         return {
             'id': self.id,
             'value': self.value,
+            'option_id': self.option_id,
             'question_id': self.question_id,
             'user_id': self.user_id,
             'running_session_id': self.running_session_id,
