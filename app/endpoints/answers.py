@@ -28,7 +28,7 @@ def calculate_susceptibility_score(answers_by_question):
         return 0
         
     susceptibility_score = (total_score / max_total_weighted_score) * 100
-    return round(susceptibility_score, 2)
+    return int(round(susceptibility_score))
 
 def register_answers_endpoints(app):
     @app.route('/answers', methods=['POST'])
