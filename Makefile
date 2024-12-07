@@ -48,7 +48,7 @@ migrate:
 
 # Run tests with coverage
 test:
-	FLASK_ENV=test $(PYTHON) -m pytest tests/ -p no:warnings 
+	FLASK_ENV=test $(PYTHON) -m pytest tests/ -p no:warnings
 
 # Clean up pyc files
 clean:

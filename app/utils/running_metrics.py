@@ -29,7 +29,9 @@ def calculate_session_metrics(final_df, axis):
             "stride_length": stride_length,
             "ground_contact_time": ground_contact_time
         }
-
+        
+        metrics["score"] = calculate_score(metrics)
+        
         return metrics
 
 def is_flat(data):
@@ -455,3 +457,69 @@ def calculate_ground_contact_time(data, axis, fft_threshold=2.2) -> float:
     except Exception as e:
         print(f"Error calculating ground contact time: {e}")
         return 0.0
+
+def calculate_score(metrics) -> int:
+    """
+    Calculate a running score (0-100) based on various metrics.
+    Uses weighted scoring of different parameters against typical "good" running values.
+    """
+    try:
+        score = 0
+        
+        # Scoring weights (total = 100)
+        weights = {
+            'cadence': 30,        # Optimal cadence is around 180 spm
+            'vo': 20,            # Vertical oscillation (lower is better)
+            'gct': 20,           # Ground contact time (lower is better)
+            'stride': 15,        # Stride length (depends on height, but consistency matters)
+            'pace': 15           # Pace (relative to average running pace)
+        }
+        
+        # Score cadence (optimal around 180 spm)
+        cadence = metrics['cadence']
+        if cadence > 0:
+            cadence_score = max(0, 100 - abs(180 - cadence) * 2)
+            score += (cadence_score * weights['cadence']) / 100
+        
+        # Score vertical oscillation (optimal 6.5-8.5 cm)
+        vo = metrics['vertical_oscillation'] * 100  # Convert to cm
+        if vo > 0:
+            if 6.5 <= vo <= 8.5:
+                vo_score = 100
+            else:
+                vo_score = max(0, 100 - abs(7.5 - vo) * 10)
+            score += (vo_score * weights['vo']) / 100
+        
+        # Score ground contact time (optimal 160-200ms)
+        gct = metrics['ground_contact_time']
+        if gct > 0:
+            if 160 <= gct <= 200:
+                gct_score = 100
+            else:
+                gct_score = max(0, 100 - abs(180 - gct) * 0.5)
+            score += (gct_score * weights['gct']) / 100
+        
+        # Score stride length (optimal 2.2-2.5m)
+        stride = metrics['stride_length']
+        if stride > 0:
+            if 2.2 <= stride <= 2.5:
+                stride_score = 100
+            else:
+                stride_score = max(0, 100 - abs(2.35 - stride) * 50)
+            score += (stride_score * weights['stride']) / 100
+        
+        # Score pace (relative scoring, faster is better, up to 3:00/km)
+        pace = metrics['pace']
+        if pace > 0:
+            if pace <= 3:
+                pace_score = 100
+            elif pace >= 8:
+                pace_score = 0
+            else:
+                pace_score = max(0, 100 - ((pace - 3) * 20))
+            score += (pace_score * weights['pace']) / 100
+
+        return round(score)
+    except Exception as e:
+        print(f"Error calculating score: {e}")
+        return 0
