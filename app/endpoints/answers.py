@@ -4,6 +4,7 @@ from app.entities.question import Question
 from app.entities.answer import Answer
 from app.entities.option import Option
 from app.database import db
+from app.entities.user import User
 from http import HTTPStatus
 
 def calculate_susceptibility_score(answers_by_question):
@@ -28,6 +29,9 @@ def calculate_susceptibility_score(answers_by_question):
         return 0
         
     susceptibility_score = (total_score / max_total_weighted_score) * 100
+    user = User.query.get(request.user.id)
+    user.susceptibility_score = int(round(susceptibility_score))
+    db.session.commit()
     return int(round(susceptibility_score))
 
 def register_answers_endpoints(app):

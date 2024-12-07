@@ -48,7 +48,7 @@ migrate:
 
 # Run tests with coverage
 test:
-	FLASK_ENV=test $(PYTHON) -m pytest tests/ -p no:warnings --cov=. --cov-report=xml --cov-report=term-missing:skip-covered
+	FLASK_ENV=test $(PYTHON) -m pytest tests/ -p no:warnings 
 
 # Clean up pyc files
 clean:
