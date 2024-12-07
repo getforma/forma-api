@@ -13,8 +13,9 @@ class Answer(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # Add relationship to Option
+    # Add relationships
     option = db.relationship('Option', backref='answers')
+    question = db.relationship('Question', backref='answers')
 
     def to_dict(self):
         return {
