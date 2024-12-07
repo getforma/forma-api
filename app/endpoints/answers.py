@@ -6,6 +6,45 @@ from app.entities.option import Option
 from app.database import db
 from http import HTTPStatus
 
+def calculate_susceptibility_score(answers_by_question):
+    """Calculate susceptibility score based on answers"""
+    weights = {
+        '1': 0.3,  # Overall discomfort
+        '2': 0.2,  # Body part discomfort
+        '3': 0.2,  # Energy levels
+        '4': 0.2,  # Form deterioration
+        '5': 0.1   # Recovery
+    }
+
+    max_scores = {
+        '1': 4,
+        '2': 6,
+        '3': 4,
+        '4': 3,
+        '5': 4
+    }
+
+    total_score = 0
+    max_total_weighted_score = 0
+
+    for question_id, answers in answers_by_question.items():
+        if question_id in weights:
+            if question_id == '2':
+                # Sum values for body part question
+                answer_value = sum(answer.option.value for answer in answers)
+            else:
+                # Use single answer value for other questions
+                answer_value = answers[0].option.value
+
+            total_score += weights[question_id] * answer_value
+            max_total_weighted_score += weights[question_id] * max_scores[question_id]
+
+    if max_total_weighted_score == 0:
+        return 0
+        
+    susceptibility_score = (total_score / max_total_weighted_score) * 100
+    return round(susceptibility_score, 2)
+
 def register_answers_endpoints(app):
     @app.route('/answers', methods=['POST'])
     @jwt_required
@@ -44,6 +83,7 @@ def register_answers_endpoints(app):
                 return jsonify({'error': 'Invalid option IDs provided'}), HTTPStatus.BAD_REQUEST
             
             # Create answer records
+            new_answers = []
             for answer_data in data['data']:
                 option_ids = answer_data['answer_value']
                 ids = option_ids if isinstance(option_ids, list) else [option_ids]
@@ -56,9 +96,24 @@ def register_answers_endpoints(app):
                         option_id=option_id
                     )
                     db.session.add(answer)
+                    new_answers.append(answer)
                 
             db.session.commit()
-            return jsonify({'message': 'Answers recorded successfully', 'score': 42}), HTTPStatus.CREATED
+
+            # Group answers by question for score calculation
+            answers_by_question = {}
+            for answer in new_answers:
+                if answer.question_id not in answers_by_question:
+                    answers_by_question[answer.question_id] = []
+                answers_by_question[answer.question_id].append(answer)
+
+            # Calculate score
+            score = calculate_susceptibility_score(answers_by_question)
+            
+            return jsonify({
+                'message': 'Answers recorded successfully', 
+                'score': score
+            }), HTTPStatus.CREATED
             
         except Exception as e:
             db.session.rollback()
