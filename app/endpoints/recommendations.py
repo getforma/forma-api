@@ -156,6 +156,6 @@ def register_recommendations_endpoints(app):
             return jsonify({'error': 'User not found'}), HTTPStatus.NOT_FOUND
         
         recommendations = create_recommendations(user.susceptibility_score)
-        return jsonify(recommendations), HTTPStatus.OK
+        return jsonify({"recommendations": recommendations}), HTTPStatus.OK
         
     
