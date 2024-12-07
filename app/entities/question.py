@@ -13,6 +13,9 @@ class Question(db.Model):
     sort_index = db.Column(db.Integer, nullable=True)
     question_type = db.Column(db.String(255), nullable=True, default='multiple_choice')
     questionnaire_id = db.Column(db.String(36), db.ForeignKey('questionnaires.id'), nullable=False)
+    weight = db.Column(db.Float, nullable=True)
+    max_score = db.Column(db.Integer, nullable=True)
+    is_summable = db.Column(db.Boolean, default=False)
 
     def to_dict(self):
         return {
@@ -23,7 +26,10 @@ class Question(db.Model):
             'options': [option.to_dict() for option in self.options],
             'question_type': self.question_type,
             'questionnaire_id': self.questionnaire_id,
-            'sort_index': self.sort_index
+            'sort_index': self.sort_index,
+            'weight': self.weight,
+            'max_score': self.max_score,
+            'is_summable': self.is_summable
         } 
     
     def serialize(self):

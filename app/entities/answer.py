@@ -13,10 +13,15 @@ class Answer(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    # Add relationships
+    option = db.relationship('Option', backref='answers')
+    question = db.relationship('Question', backref='answers')
+
     def to_dict(self):
         return {
             'id': self.id,
             'option_id': self.option_id,
+            'option_value': self.option.value if self.option else None,
             'question_id': self.question_id,
             'user_id': self.user_id,
             'running_session_id': self.running_session_id,
