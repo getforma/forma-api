@@ -8,36 +8,21 @@ from http import HTTPStatus
 
 def calculate_susceptibility_score(answers_by_question):
     """Calculate susceptibility score based on answers"""
-    weights = {
-        '1': 0.3,  # Overall discomfort
-        '2': 0.2,  # Body part discomfort
-        '3': 0.2,  # Energy levels
-        '4': 0.2,  # Form deterioration
-        '5': 0.1   # Recovery
-    }
-
-    max_scores = {
-        '1': 4,
-        '2': 6,
-        '3': 4,
-        '4': 3,
-        '5': 4
-    }
-
     total_score = 0
     max_total_weighted_score = 0
 
     for question_id, answers in answers_by_question.items():
-        if question_id in weights:
-            if question_id == '2':
-                # Sum values for body part question
+        question = answers[0].question  # Get the question from any answer
+        if question.weight:  # Only calculate for questions with weights
+            if question.is_summable:
+                # Sum values for questions like body parts
                 answer_value = sum(answer.option.value for answer in answers)
             else:
                 # Use single answer value for other questions
                 answer_value = answers[0].option.value
 
-            total_score += weights[question_id] * answer_value
-            max_total_weighted_score += weights[question_id] * max_scores[question_id]
+            total_score += question.weight * answer_value
+            max_total_weighted_score += question.weight * question.max_score
 
     if max_total_weighted_score == 0:
         return 0
